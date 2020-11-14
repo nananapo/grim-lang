@@ -1,7 +1,5 @@
 from interpreter import *
-import copy
 
-# TODO RecursionError回避
 class GrimVM:
 
     BUILT_IN_FUNCS = set([

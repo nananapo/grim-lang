@@ -1,42 +1,14 @@
 
 """
-予約語
-fun 関数の定義
-end 関数の終了符号 end
-
 ビルトイン関数(上書き可)
 input
 output
 return - 値を返す 最初の式のみ
 main - 最初に呼ばれる関数
 
-命名規則
-(や=以外は使える 先頭数字,数字のみもOK 
-=> 数字の名前の変数関数が既に定義されていたらそれを利用する
-変数,関数名に数字が使える
-
-TODO 名前空間を共有する実行方法を用意する
-
-値の捜索順序は変数>関数>数字
-
-TODO マイナス符号 数字 % ^
 いきなり-,op - はマイナス
-
-TODO if else 
-
-TODO 四則演算
-
 全ては値渡し
 
-明示的に返り値を指定しない場合、最後の式の値が返る -> returnでも無
-fun main
-    print(coffee)#2
-end
-fun coffee
-    1+1
-end
-
-TODO デフォルトの空間をmainにしてmain上に関数を定義したい => 読んでは実行して...ができる
 """
 
 import sys
@@ -286,10 +258,7 @@ class Parser:
 
     # 式の値を読む
     """
-    TODO 四則演算の順序のための括弧
-    TODO 比較記号も,==<>=!
     関数を呼ぶときは引数が無い場合スキップできる,引数アリのときの指定は(の前にスペースがあってはいけない
-    TODO 配列[key]
     endIndex はexclusive
     """
 
@@ -395,7 +364,8 @@ class Parser:
 
     # 処理を読む
     """
-    変数 = 式
+    全ての処理は式
+    参照する変数 = 式本体
     が基本形(変数=は省略可)
     一連の処理もオブジェクトに => ifとかも
     """
@@ -869,7 +839,7 @@ if __name__ == "__main__":
     debug = False
 
     # get filename
-    filepath = "sample.grim"  # input()
+    filepath = "ex1.grim"  # input()
     lines = open(filepath).readlines()
 
     program = ""
