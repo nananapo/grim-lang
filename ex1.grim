@@ -1,0 +1,6 @@
+fun main
+    print(cool(input))
+end
+fun cool(name)
+    name + " is very cool!"
+end
