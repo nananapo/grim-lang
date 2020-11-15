@@ -1,14 +1,7 @@
 
 """
-ビルトイン関数(上書き可)
-input
-output
-return - 値を返す 最初の式のみ
-main - 最初に呼ばれる関数
-
 いきなり-,op - はマイナス
 全ては値渡し
-
 """
 
 import sys
@@ -20,41 +13,17 @@ class Parser:
     def __init__(self, string):
         self.program = string
         self.program_len = len(self.program)
-        self.functions = {}
+        self.main = NameSpace("main", NameSpace.ROOT)
 
     # read
     def read(self, i=0):
-
-        # 状態
-        READ_BASE = 0
-        mode = READ_BASE
-
-        i = 0
-        strs = ""
-
-        while i < self.program_len:
-
-            s = self.program[i]
-            is_space = self.is_space(s)
-
-            #print("r", i, s)
-
-            # 基本操作 def/task
-            if mode == READ_BASE:
-                if is_space:
-                    if strs == "fun":
-                        i = self.__read_fun(i+1)
-                        strs = ""
-                else:
-                    strs += s
-
-            i += 1
+        self.__read_proc(i, self.main)
 
     # 区切りを判別
     def is_space(self, string):
         return string == " " or string == "\n"
 
-    # defを読む
+    # funを読む
     """
     関数を定義するワード : fun
     
@@ -68,7 +37,7 @@ class Parser:
 
     """
 
-    def __read_fun(self, i):
+    def __read_fun(self, i, parent, namespace):
 
         # 状態
         READ_ID = 0
@@ -78,9 +47,6 @@ class Parser:
         mode = READ_ID
 
         # 設定
-        fun_id = ""  # 関数名
-        fun_params = []  # 引数 TODO デフォルト値:dictで
-        fun_procs = []  # 処理
         strs = ""
 
         success = False
@@ -89,28 +55,52 @@ class Parser:
             s = self.program[i]
             is_space = self.is_space(s)
 
+            #print("rf", i, s, mode)
+
             # 関数名を読む
             if mode == READ_ID:
 
                 if is_space:
 
                     # 名前被りはダメ
-                    if strs in self.functions:
+                    if strs in parent.functions:
                         FunctionAlreadyUsedError(strs, i).throw()
 
-                    fun_id = strs
+                    # 予約語もダメ TODO 記号禁止
+                    if strs == "fun" or strs == "end" or ":" in strs:
+                        VariableNameError(strs, parent.name, i).throw()
+
+                    if namespace == None:
+                        namespace = NameSpace(strs, parent)
+
+                    namespace.name = strs
+                    namespace.parent = parent
+
                     mode = READ_PARAMS_BRACKET
                     strs = ""
 
                 elif s == "(":
 
                     # 名前被りはダメ
-                    if strs in self.functions:
+                    if strs in parent.functions:
                         FunctionAlreadyUsedError(strs, i).throw()
 
-                    fun_id = strs
+                    # 予約語もダメ TODO 記号禁止
+                    if strs == "fun" or strs == "end" or ":" in strs:
+                        VariableNameError(strs, parent.name, i).throw()
+
+                    if namespace == None:
+                        namespace = NameSpace(strs, parent)
+
+                    namespace.name = strs
+                    namespace.parent = parent
+
                     mode = READ_PARAMS
                     strs = ""
+                
+                #:は禁止
+                elif s == ":":
+                    VariableNameError(strs + s, parent.name, i).throw()
                 else:
                     strs += s
 
@@ -136,11 +126,15 @@ class Parser:
                     if strs != "":
 
                         # 同じ名前の引数はエラーを出す
-                        if strs in fun_params:
-                            ParameterNameError(strs, fun_id, i).throw()
+                        if strs in namespace.parameters:
+                            ParameterNameError(strs, parent.name, i).throw()
+
+                        # 予約語もダメ TODO 記号禁止
+                        if strs == "fun" or strs == "end":
+                            VariableNameError(strs, parent.name, i).throw()
 
                         # 追加
-                        fun_params.append(strs)
+                        namespace.parameters.append(strs)
                         strs = ""
 
                     mode = READ_PROC
@@ -150,21 +144,29 @@ class Parser:
                     if strs != "":
 
                         # 同じ名前の引数はエラーを出す
-                        if strs in fun_params:
-                            ParameterNameError(strs, fun_id, i).throw()
+                        if strs in namespace.parameters:
+                            ParameterNameError(strs, parent.name, i).throw()
+
+                        # 予約語もダメ TODO 四則演算禁止
+                        if strs == "fun" or strs == "end":
+                            VariableNameError(strs, parent.name, i).throw()
 
                         # 追加
-                        fun_params.append(strs)
+                        namespace.parameters.append(strs)
                         strs = ""
 
                     else:
                         # 何もない場合はスキップ
                         pass
+
+                #:は禁止
+                elif s == ":":
+                    VariableNameError(strs + s, parent.name, i).throw()
+                    
                 else:
                     strs += s
             elif mode == READ_PROC:
-                res = self.__read_proc(i+1, fun_id)
-                i, fun_procs = res[0], res[1]
+                i = self.__read_proc(i+1, namespace)
                 success = True
                 break
 
@@ -173,7 +175,6 @@ class Parser:
         if not success:
             EOFError(i).throw()
 
-        self.functions[fun_id] = [fun_params, fun_procs]
         return i-1
 
     # funを呼ぶときの引数を読む
@@ -189,17 +190,14 @@ class Parser:
     =>式2は無視
     """
 
-    def __read_fun_params(self, i, runnable):
+    def __read_fun_params(self, i, namespace, runnable):
 
         READ_BASE = 0
         READ_FORMULA = 1
         mode = READ_BASE
 
-        strs = ""
         formula_index = i
-
-        # (+1 )-1
-        bracket_size = 0
+        bracket_size = 0  # (+1 )-1
 
         success = False
 
@@ -207,7 +205,7 @@ class Parser:
             s = self.program[i]
             is_space = self.is_space(s)
 
-            #print("fp", i, s, mode)
+            print("fp", i, s, mode)
 
             success = False
 
@@ -237,7 +235,8 @@ class Parser:
                 elif s == ")":
                     if bracket_size == 0:
                         formula = Formula()
-                        self.__read_formula_value(formula_index, formula, i)
+                        self.__read_formula_value(
+                            formula_index, namespace, formula, endIndex=i)
                         runnable.parameters.append(formula)
                         success = True
                         break
@@ -245,8 +244,10 @@ class Parser:
                         bracket_size -= 1
                 elif s == ",":
                     formula = Formula()
-                    self.__read_formula_value(formula_index, formula, i)
+                    self.__read_formula_value(
+                        formula_index, namespace, formula, endIndex=i)
                     runnable.parameters.append(formula)
+                    mode = READ_BASE
                 else:
                     pass
             i += 1
@@ -262,10 +263,13 @@ class Parser:
     endIndex はexclusive
     """
 
-    def __read_formula_value(self, i, formula, endIndex=None):
+    def __read_formula_value(self, i, parent, formula=None, endIndex=None):
 
         if endIndex == None:
             endIndex = self.program_len
+
+        if formula == None:
+            formula = Formula()
 
         #print("formula", i, endIndex)
 
@@ -274,9 +278,11 @@ class Parser:
 
         READ_VALUE = 0
         READ_OP = 1
+        READ_VALUE_MUST = 2
         mode = READ_VALUE
 
         strs = ""
+        value_index = i
 
         success = False
 
@@ -284,7 +290,7 @@ class Parser:
             s = self.program[i]
             is_space = self.is_space(s)
 
-            #print("f", i, s, mode)
+            print("f", i, s, mode,parent.name)
 
             success = False
 
@@ -293,12 +299,33 @@ class Parser:
                     if strs == "":
                         pass
                     else:
-                        formula.value.append(Variable(strs))
-                        strs = ""
-                        mode = READ_OP
-                        success = True
+
+                        if strs == "end":
+                            ParseError(i).throw()
+
+                        elif strs == "fun":
+
+                            namespace = NameSpace("undefined", parent)
+                            i = self.__read_fun(i+1, parent, namespace)
+                            parent.functions[namespace.name] = namespace
+                            strs = ""
+                            success = True
+                            break
+
+                        else:
+
+                            # :だけはだめ
+                            if strs == ":":
+                                VariableNameError(strs, parent.name, i).throw()
+
+                            formula.value.append(Variable(strs))
+                            strs = ""
+                            mode = READ_OP
+                            success = True
+
                 elif s == "=":
                     ParseError(i).throw()
+
                 # " => 文字
                 elif s in String.SYMBOL:
                     # 文字を呼んで追加する
@@ -316,6 +343,10 @@ class Parser:
                     if strs == "":
                         ParseError(i).throw()
 
+                    # :だけはだめ
+                    if strs == ":":
+                        VariableNameError(strs, parent.name, i).throw()
+
                     formula.value.append(Variable(strs))
                     formula.value.append(Operator(s))
 
@@ -326,8 +357,12 @@ class Parser:
                     if strs == "":
                         ParseError(i).throw()
 
+                    # :だけはだめ
+                    if strs == ":":
+                        VariableNameError(strs, parent.name, i).throw()
+
                     runnable = Runnable(strs)
-                    i = self.__read_fun_params(i+1, runnable)
+                    i = self.__read_fun_params(i+1, parent, runnable)
                     formula.value.append(runnable)
 
                     strs = ""
@@ -344,13 +379,56 @@ class Parser:
                 # op => 文字を読む
                 elif s in Operator.SYMBOL:
                     formula.value.append(Operator(s))
-                    mode = READ_VALUE
+                    mode = READ_VALUE_MUST
+                    value_index = i
                 else:
                     # 終了
                     success = True
                     break
+            elif mode == READ_VALUE_MUST:
+
+                if is_space:
+                    if strs == "":
+                        pass
+                    # いきなりend,fun
+                    if strs == "end" or strs == "fun":
+                        ParseError(i).throw()
+                    else:
+                        i = value_index
+                        mode = READ_VALUE
+
+                elif s == "=":
+                    ParseError(i).throw()
+
+                # op  TODO マイナス記号
+                elif s in Operator.SYMBOL:
+                    ParseError(i).throw()
+
+                # 文字開始
+                elif s in String.SYMBOL:
+                    mode = READ_VALUE
+                    continue
+
+                # 関数開始
+                elif s == "(":
+                    
+                    #空
+                    if strs == "":
+                        ParseError(i).throw()
+
+                    # :だけはだめ
+                    if strs == ":":
+                        VariableNameError(strs, parent.name, i).throw()
+
+                    i = value_index
+                    mode = READ_VALUE
+
+                else:
+                    strs += s
+
             i += 1
 
+        print(strs,mode)
         if not success:
             if mode == READ_VALUE:
                 if strs != "":
@@ -370,7 +448,7 @@ class Parser:
     一連の処理もオブジェクトに => ifとかも
     """
 
-    def __read_proc(self, i, fun_id):
+    def __read_proc(self, i, namespace):
 
         # 状態
         READ_BASE = 0
@@ -379,7 +457,6 @@ class Parser:
         mode = READ_BASE
 
         # 設定
-        fun_procs = []
         formula = None
 
         strs = ""
@@ -391,9 +468,10 @@ class Parser:
             s = self.program[i]
             is_space = self.is_space(s)
 
-            #print("p", i, s, mode)
+            print("p", i, s, mode)
 
             if mode == READ_BASE:
+
                 if is_space:
                     pass
 
@@ -403,16 +481,13 @@ class Parser:
 
                 # 文字開始
                 elif s in String.SYMBOL:
-                    # 式を追加
                     formula = Formula()
-                    i = self.__read_formula_value(i, formula)
-                    fun_procs.append(formula)
+                    i = self.__read_formula_value(i, namespace, formula)
+                    namespace.process.append(formula)
 
                 # 変数名を読む
                 else:
                     mode = READ_ASSIGN
-                    formula = Formula()
-
                     strs = s
                     assign_index = i
 
@@ -420,29 +495,44 @@ class Parser:
             elif mode == READ_ASSIGN:
 
                 if is_space:
+
+                    # :だけはだめ
+                    if strs == ":":
+                        VariableNameError(strs, namespace.name, i).throw()
+
                     mode = READ_VALUE_OR_EQUAL
 
                 # =で代入
                 elif s == "=":
+                    
                     # 変数名確認
-                    if strs == "end":
-                        VariableNameError(strs, fun_id, i).throw()
-
-                    # assign設定
-                    formula.assign = strs
+                    if strs == "end" or strs == "fun":
+                        VariableNameError(strs, namespace.name, i).throw()
+                    
+                    # :だけはだめ
+                    if strs == ":":
+                        VariableNameError(strs, namespace.name, i).throw()
 
                     # 式を追加
-                    i = self.__read_formula_value(i+1, formula)
-                    fun_procs.append(formula)
+                    formula = Formula(strs)
+                    i = self.__read_formula_value(i+1, namespace, formula)
+                    namespace.process.append(formula)
 
                     mode = READ_BASE
                     strs = ""
 
                 # いきなり文字開始
                 elif s in String.SYMBOL:
+
+                    # :だけはだめ
+                    if strs == ":":
+                        VariableNameError(strs, namespace.name, i).throw()
+
                     # 式を追加
-                    i = self.__read_formula_value(assign_index, formula)
-                    fun_procs.append(formula)
+                    formula = Formula()
+                    i = self.__read_formula_value(
+                        assign_index, namespace, formula)
+                    namespace.process.append(formula)
 
                     # 戻る
                     mode = READ_BASE
@@ -450,9 +540,16 @@ class Parser:
 
                 # 演算子が開始
                 elif s in Operator.SYMBOL:
+
+                    # :だけはだめ
+                    if strs == ":":
+                        VariableNameError(strs, namespace.name, i).throw()
+
                     # 式を追加
-                    i = self.__read_formula_value(assign_index, formula)
-                    fun_procs.append(formula)
+                    formula = Formula()
+                    i = self.__read_formula_value(
+                        assign_index, namespace, formula)
+                    namespace.process.append(formula)
 
                     # 戻る
                     mode = READ_BASE
@@ -460,9 +557,16 @@ class Parser:
 
                 # 引数ありRunnable
                 elif s == "(":
+
+                    # :だけはだめ
+                    if strs == ":":
+                        VariableNameError(strs, namespace.name, i).throw()
+                        
                     # 式を追加
-                    i = self.__read_formula_value(assign_index, formula)
-                    fun_procs.append(formula)
+                    formula = Formula()
+                    i = self.__read_formula_value(
+                        assign_index, namespace, formula)
+                    namespace.process.append(formula)
 
                     # 戻る
                     mode = READ_BASE
@@ -476,32 +580,37 @@ class Parser:
                 elif s == "=":
 
                     # 変数名確認
-                    if strs == "end":
-                        VariableNameError(strs, fun_id, i).throw()
-
-                    # assign設定
-                    formula.assign = strs
+                    if strs == "end" or strs == "fun":
+                        VariableNameError(strs, namespace.name, i).throw()
 
                     # 式を追加
-                    i = self.__read_formula_value(i+1, formula)
-                    fun_procs.append(formula)
+                    formula = Formula(strs)
+                    i = self.__read_formula_value(
+                        i+1, namespace, formula)
+                    namespace.process.append(formula)
 
                     mode = READ_BASE
                     strs = ""
 
                 elif s in String.SYMBOL:
+
                     # 式を追加
-                    i = self.__read_formula_value(assign_index, formula)
-                    fun_procs.append(formula)
+                    formula = Formula()
+                    i = self.__read_formula_value(
+                        assign_index, namespace, formula)
+                    namespace.process.append(formula)
 
                     # 戻る
                     mode = READ_BASE
                     strs = ""
 
                 elif s in Operator.SYMBOL:
+
                     # 式を追加
-                    i = self.__read_formula_value(assign_index, formula)
-                    fun_procs.append(formula)
+                    formula = Formula()
+                    i = self.__read_formula_value(
+                        assign_index, namespace, formula)
+                    namespace.process.append(formula)
 
                     # 戻る
                     mode = READ_BASE
@@ -513,22 +622,31 @@ class Parser:
                         success = True
                         break
 
-                    # 式を追加
-                    i = self.__read_formula_value(assign_index, formula)
-                    fun_procs.append(formula)
+                    else:
+                        # 式を追加
+                        formula = Formula()
+                        i = self.__read_formula_value(
+                            assign_index, namespace, formula)
 
-                    # 戻る
-                    mode = READ_BASE
-                    strs = ""
+                        if strs != "fun":
+                            namespace.process.append(formula)
+
+                        # 戻る
+                        mode = READ_BASE
+                        strs = ""
 
             i += 1
 
         if not success:
             # endで終了の場合もある
-            if strs != "end":
+            if strs == "end":
+                pass
+            elif namespace == self.main:
+                pass
+            else:
                 EOFError(i).throw()
 
-        return [i, fun_procs]
+        return i
 
     # 文字を読む
     """
@@ -565,6 +683,24 @@ class Parser:
         return [i, string]
 
 
+class NameSpace:  # 名前空間
+
+    ROOT = 0
+
+    def __init__(self, name, parent):
+        self.name = name
+        self.process = []
+        self.parameters = []
+        self.functions = {}
+        self.parent = parent
+
+    def is_root(self):
+        return self.parent == NameSpace.ROOT
+
+    def __str__(self):
+        return "NameSpace<" + self.name+">"
+
+
 class Formula:  # 式
 
     ID = 0
@@ -572,6 +708,15 @@ class Formula:  # 式
     def __init__(self, assign=None, value=None):
         self.assign = assign
         self.value = value if value != None else []
+
+    def only_value(self):
+        return self.assign == None
+
+    def is_dynamic(self):
+        return self.assign[0] == ":"
+
+    def get_assign(self):
+        return self.assign if not self.is_dynamic() else self.assign[1::]
 
     def __str__(self):
         return "Formula" + str(self.value)
@@ -591,6 +736,12 @@ class Variable:
 
     def get_type(self):
         return Variable.TYPE_VARIABLE
+
+    def is_dynamic(self):
+        return self.name[0] == ":"
+
+    def get_assign(self):
+        return self.name if not self.is_dynamic() else self.name[1::]
 
     def __str__(self):
         return "Variable<"+self.name+">"
@@ -642,7 +793,7 @@ class Operator:
         return "Operator<"+self.operator + ">"
 
 
-class String(Variable):
+class String:
     SYMBOL = ["\"", "'"]
 
     def __init__(self, string=""):
@@ -690,7 +841,7 @@ class String(Variable):
         vm.UnknownOperationError(self, other, "/").throw()
 
 
-class Numeric(Variable):
+class Numeric:
     __NUMBER = set(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])
 
     def __init__(self, number):
@@ -836,7 +987,7 @@ if __name__ == "__main__":
 
     sys.setrecursionlimit(10000)
 
-    debug = False
+    debug = True
 
     # get filename
     filepath = "ex1.grim"  # input()
@@ -851,14 +1002,19 @@ if __name__ == "__main__":
 
     if debug:
         print("========ParseResult==========")
-        for name in parser.functions:
-            print("function<"+name+">")
-            fun = parser.functions[name]
-            print("    params", fun[0])
-            print("    process--")
-            for formula in fun[1]:
-                print("        formula<", formula.assign, ">")
-                for value in formula.value:
-                    print("          ", value)
-        print("========RUNNNING========")
+        for formula in parser.main.process:
+            print("formula<", formula.assign, ">")
+            for value in formula.value:
+                print("   ", value)
+        for name in parser.main.functions:
+            fun = parser.main.functions[name]
+            print("NameSpace<", name, ">")
+            print("   ", "params:", fun.parameters)
+            print("   ", "---functions---")
+            for fn2 in fun.functions:
+                print("       ", fun.functions[fn2])
+            print("   ", "---process---")
+            for value in fun.process:
+                print("       ", value)
+        print("========RUNNING========")
     vm.GrimVM(parser).run()

@@ -1,6 +1,13 @@
-fun main
-    print(cool(input))
+fun test1
+    name = "tarou"
+    fun test2
+        out
+    end
+    test2
 end
-fun cool(name)
-    name + " is very cool!"
+
+fun out
+    print(:name)
 end
+
+test1()
