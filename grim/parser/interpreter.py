@@ -3,10 +3,12 @@
 いきなり-,op - はマイナス
 全ては値渡し
 """
-
-import sys
-import vm
-
+from ..formula.operator import Operator
+from ..formula.primitive import *
+from ..formula.variable import *
+from ..formula.formula import Formula
+from ..error.vmerror import *
+from grim.error.parseerror import *
 
 class Parser:
 
@@ -97,7 +99,7 @@ class Parser:
 
                     mode = READ_PARAMS
                     strs = ""
-                
+
                 #:は禁止
                 elif s == ":":
                     VariableNameError(strs + s, parent.name, i).throw()
@@ -162,7 +164,7 @@ class Parser:
                 #:は禁止
                 elif s == ":":
                     VariableNameError(strs + s, parent.name, i).throw()
-                    
+
                 else:
                     strs += s
             elif mode == READ_PROC:
@@ -290,7 +292,7 @@ class Parser:
             s = self.program[i]
             is_space = self.is_space(s)
 
-            print("f", i, s, mode,parent.name)
+            print("f", i, s, mode, parent.name)
 
             success = False
 
@@ -411,7 +413,7 @@ class Parser:
 
                 # 関数開始
                 elif s == "(":
-                    
+
                     #空
                     if strs == "":
                         ParseError(i).throw()
@@ -428,7 +430,7 @@ class Parser:
 
             i += 1
 
-        print(strs,mode)
+        print(strs, mode)
         if not success:
             if mode == READ_VALUE:
                 if strs != "":
@@ -504,11 +506,11 @@ class Parser:
 
                 # =で代入
                 elif s == "=":
-                    
+
                     # 変数名確認
                     if strs == "end" or strs == "fun":
                         VariableNameError(strs, namespace.name, i).throw()
-                    
+
                     # :だけはだめ
                     if strs == ":":
                         VariableNameError(strs, namespace.name, i).throw()
@@ -561,7 +563,7 @@ class Parser:
                     # :だけはだめ
                     if strs == ":":
                         VariableNameError(strs, namespace.name, i).throw()
-                        
+
                     # 式を追加
                     formula = Formula()
                     i = self.__read_formula_value(
@@ -699,322 +701,3 @@ class NameSpace:  # 名前空間
 
     def __str__(self):
         return "NameSpace<" + self.name+">"
-
-
-class Formula:  # 式
-
-    ID = 0
-
-    def __init__(self, assign=None, value=None):
-        self.assign = assign
-        self.value = value if value != None else []
-
-    def only_value(self):
-        return self.assign == None
-
-    def is_dynamic(self):
-        return self.assign[0] == ":"
-
-    def get_assign(self):
-        return self.assign if not self.is_dynamic() else self.assign[1::]
-
-    def __str__(self):
-        return "Formula" + str(self.value)
-
-
-class Variable:
-    TYPE_NONE = -1
-    TYPE_VARIABLE = 0
-    TYPE_RUNNABLE = 1
-    TYPE_OPERATOR = 2
-    TYPE_STRING = 3
-    TYPE_NUMERIC = 4
-
-    def __init__(self, name):
-        self.name = name
-        self.value = None
-
-    def get_type(self):
-        return Variable.TYPE_VARIABLE
-
-    def is_dynamic(self):
-        return self.name[0] == ":"
-
-    def get_assign(self):
-        return self.name if not self.is_dynamic() else self.name[1::]
-
-    def __str__(self):
-        return "Variable<"+self.name+">"
-
-
-class VariableNone(Variable):
-
-    def __init__(self):
-        pass
-
-    def get_type(self):
-        return Variable.TYPE_NONE
-
-    def __str__(self):
-        return "VariableNone"
-
-
-class Runnable(Variable):  #
-    def __init__(self, name, params=None):
-        self.name = name
-        self.parameters = params if params != None else []
-
-    def __str__(self):
-        return "Runnable<"+self.name+">" + str(self.parameters)
-
-    def get_type(self):
-        return Variable.TYPE_RUNNABLE
-
-
-class Operator:
-    SYMBOL = ["+", "-", "*", "/", "%"]
-    SYMBOL_DICT = {
-        "+": 1,
-        "-": 2,
-        "*": 3,
-        "/": 4
-    }
-
-    def __init__(self, op):
-        self.operator = op
-
-    def get_type(self):
-        return Variable.TYPE_OPERATOR
-
-    def get_op(self):
-        return Operator.SYMBOL_DICT[self.operator]
-
-    def __str__(self):
-        return "Operator<"+self.operator + ">"
-
-
-class String:
-    SYMBOL = ["\"", "'"]
-
-    def __init__(self, string=""):
-        self.string = string
-
-    def get_type(self):
-        return Variable.TYPE_STRING
-
-    def copy(self):
-        return String(self.string)
-
-    def __str__(self):
-        return self.string
-
-    def __add__(self, other):
-        o_type = other.get_type()
-        if o_type == Variable.TYPE_NUMERIC:
-            return String(self.string+str(other.number))
-        elif o_type == Variable.TYPE_STRING:
-            return String(self.string+other.string)
-        elif o_type == Variable.TYPE_NONE:
-            return self.copy()
-        else:
-            vm.UnknownOperationError(self, other, "+").throw()
-
-    def __sub__(self, other):
-        o_type = other.get_type()
-        if o_type == Variable.TYPE_NONE:
-            return self.copy()
-        vm.UnknownOperationError(self, other, "-").throw()
-
-    def __mul__(self, other):
-        o_type = other.get_type()
-        if o_type == Variable.TYPE_NUMERIC:
-            return Numeric(self.string*other.number)
-        elif o_type == Variable.TYPE_NONE:
-            return self.copy()
-        else:
-            vm.UnknownOperationError(self, other, "*").throw()
-
-    def __truediv__(self, other):
-        o_type = other.get_type()
-        if o_type == Variable.TYPE_NONE:
-            return self.copy()
-        vm.UnknownOperationError(self, other, "/").throw()
-
-
-class Numeric:
-    __NUMBER = set(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])
-
-    def __init__(self, number):
-        self.number = number
-
-    def get_type(self):
-        return Variable.TYPE_NUMERIC
-
-    def copy(self):
-        return Numeric(self.number)
-
-    # 文字列が数字か判定 -> False or 数値
-    @staticmethod
-    def is_num(string):
-
-        front = False
-        point = False
-        for s in string:
-            if not point:
-                if s == "+" or s == "-":
-                    if front:
-                        return False
-                    front = True
-                elif s == ".":
-                    point = True
-                elif s in Numeric.__NUMBER:
-                    pass
-                else:
-                    return False
-            else:
-                if s == "+" or s == "-":
-                    return False
-                elif s == ".":
-                    return False
-                elif s in Numeric.__NUMBER:
-                    pass
-                else:
-                    return False
-        return float(string) if point else int(string)
-
-    def __str__(self):
-        return str(self.number)
-
-    def __add__(self, other):
-        o_type = other.get_type()
-        if o_type == Variable.TYPE_NUMERIC:
-            return Numeric(self.number+other.number)
-        elif o_type == Variable.TYPE_STRING:
-            return String(str(self.number)+other.string)
-        elif o_type == Variable.TYPE_NONE:
-            return self.copy()
-        else:
-            vm.UnknownOperationError(self, other, "+").throw()
-
-    def __sub__(self, other):
-        o_type = other.get_type()
-        if o_type == Variable.TYPE_NUMERIC:
-            return Numeric(self.number-other.number)
-        elif o_type == Variable.TYPE_NONE:
-            return self.copy()
-        else:
-            vm.UnknownOperationError(self, other, "-").throw()
-
-    def __mul__(self, other):
-        o_type = other.get_type()
-        if o_type == Variable.TYPE_NUMERIC:
-            return Numeric(self.number*other.number)
-        elif o_type == Variable.TYPE_STRING:
-            return String(self.number*other.string)
-        elif o_type == Variable.TYPE_NONE:
-            return self.copy()
-        else:
-            vm.UnknownOperationError(self, other, "*").throw()
-
-    def __truediv__(self, other):
-        o_type = other.get_type()
-        if o_type == Variable.TYPE_NUMERIC:
-            if other.number == 0:
-                vm.ZeroDivisionError().throw()
-            return Numeric(self.number/other.number)
-        elif o_type == Variable.TYPE_NONE:
-            return self.copy()
-        else:
-            vm.UnknownOperationError(self, other, "/").throw()
-
-
-class ParseError:
-    def __init__(self, index=0):
-        index = str(index)
-        self.error = "ParseError :インデックス " + index
-
-    def name(self):
-        return "ParseError"
-
-    def throw(self):
-        print("構文解析中にエラーが発生しました : ", self.name())
-        print(self.error)
-        exit()
-
-
-class ParameterNameError(ParseError):
-
-    def __init__(self, param, def_id, index):
-        index = str(index)
-        self.error = "引数名 " + param + " は既に使用されています :関数名 " + def_id + " :インデックス " + index
-
-    def name(self):
-        return "ParameterNameError"
-
-
-class FunctionAlreadyUsedError(ParseError):
-
-    def __init__(self, def_id, index):
-        index = str(index)
-        self.error = "関数名 " + def_id + " は既に使用されています :インデックス "+index
-
-    def name(self):
-        return "FunctionAlreadyUsedError"
-
-
-class EOFError(ParseError):
-
-    def __init__(self, index):
-        index = str(index)
-        self.error = "構文解析中にファイルが終了しました :インデックス "+index
-
-    def name(self):
-        return "EOFError"
-
-
-class VariableNameError(ParseError):
-
-    def __init__(self, variable, def_id, index):
-        index = str(index)
-        self.error = "変数名 " + variable + \
-            " は予約語として既に使用されています :関数名 " + def_id + " :インデックス " + index
-
-    def name(self):
-        return "VariableNameError"
-
-
-if __name__ == "__main__":
-
-    sys.setrecursionlimit(10000)
-
-    debug = True
-
-    # get filename
-    filepath = "ex1.grim"  # input()
-    lines = open(filepath).readlines()
-
-    program = ""
-    for line in lines:
-        program += line
-
-    parser = Parser(program)
-    parser.read()
-
-    if debug:
-        print("========ParseResult==========")
-        for formula in parser.main.process:
-            print("formula<", formula.assign, ">")
-            for value in formula.value:
-                print("   ", value)
-        for name in parser.main.functions:
-            fun = parser.main.functions[name]
-            print("NameSpace<", name, ">")
-            print("   ", "params:", fun.parameters)
-            print("   ", "---functions---")
-            for fn2 in fun.functions:
-                print("       ", fun.functions[fn2])
-            print("   ", "---process---")
-            for value in fun.process:
-                print("       ", value)
-        print("========RUNNING========")
-    vm.GrimVM(parser).run()

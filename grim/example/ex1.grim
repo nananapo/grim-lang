@@ -5,7 +5,6 @@ fun test1
     end
     test2
 end
-
 fun out
     print(:name)
 end
