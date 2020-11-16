@@ -7,12 +7,12 @@ class ClassType:
     TYPE_VARIABLE = 0
     TYPE_RUNNABLE = 1
 
-    #オペレーター TODO これも型にしてしまいたい
-    TYPE_OPERATOR = 2
-
-    #本当の型
-    TYPE_CLASS = 2.9#TODO
-
     #プリミティブ型
-    TYPE_STRING = 3
-    TYPE_NUMERIC = 4
+    TYPE_STRING = 2
+    TYPE_NUMERIC = 3
+
+    #不定型
+    TYPE_INDEFINITE = 4
+
+    #名前型
+    TYPE_NAME = 5

@@ -17,6 +17,9 @@ class Numeric:
     @staticmethod
     def is_num(string):
 
+        if string == "+" or string == "-":
+            return False
+
         front = False
         point = False
         for s in string:
@@ -101,7 +104,7 @@ class String:
         return String(self.string)
 
     def __str__(self):
-        return self.string
+        return self.string#"String<"+self.string+">"
 
     def __add__(self, other):
         o_type = other.get_type()

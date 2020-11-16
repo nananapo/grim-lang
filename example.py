@@ -21,13 +21,13 @@ if __name__ == "__main__":
     parser.read()
 
     print("========ParseResult==========")
+
     for formula in parser.main.process:
-        print("formula<", formula.assign, ">")
-        for value in formula.value:
-            print("   ", value)
+        print(formula)
+
     for name in parser.main.functions:
         fun = parser.main.functions[name]
-        print("NameSpace<", name, ">")
+        print(fun)
         print("   ", "params:", fun.parameters)
         print("   ", "---functions---")
         for fn2 in fun.functions:
