@@ -22,6 +22,16 @@ class ParameterNameError(ParseError):
         return "ParameterNameError"
 
 
+class ParameterCountError(ParseError):
+
+    def __init__(self, need, def_id):
+        need = str(need)
+        self.error = "オペレーターの引数は" + need + "個である必要があります :オペレーター名" + def_id
+
+    def name(self):
+        return "ParameterCountError"
+
+
 class FunctionAlreadyUsedError(ParseError):
 
     def __init__(self, def_id, index):
@@ -47,7 +57,7 @@ class VariableNameError(ParseError):
     def __init__(self, variable, def_id, index):
         index = str(index)
         self.error = "変数名 " + variable + \
-            " は予約語として既に使用されています :関数名 " + def_id + " :インデックス " + index
+            " は予約語として既に使用されている、または使用不可能な文字が含まれています :関数名 " + def_id + " :インデックス " + index
 
     def name(self):
         return "VariableNameError"
