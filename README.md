@@ -1,5 +1,7 @@
 # grim-lang
 
+![Python application](https://github.com/nananapo/grim-lang/workflows/Python%20application/badge.svg)
+
 ほぼ確実レポート用。これで使わなかったら萎
 
 2020/11/15より作成
