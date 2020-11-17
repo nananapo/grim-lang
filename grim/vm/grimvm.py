@@ -249,11 +249,15 @@ class GrimRunner:
                         # 実行する
                         runstack.run_function(
                             last_operator_1, self.__assign_params(last_operator_1, [variable]))
-                        last_variable = self.__run_fun(runstack)
+                        variable = self.__run_fun(runstack)
                         runstack.end_function()
 
                         #リセット
                         last_operator_1 = None
+
+                        #前置が無いならlastに代入
+                        if last_operator_2 == None:
+                            last_variable = variable
 
                     # op 2
                     if last_operator_2 != None:
@@ -342,11 +346,15 @@ class GrimRunner:
                         # 実行する
                         runstack.run_function(
                             last_operator_1, self.__assign_params(last_operator_1, [variable]))
-                        last_variable = self.__run_fun(runstack)
+                        variable = self.__run_fun(runstack)
                         runstack.end_function()
 
                         #リセット
                         last_operator_1 = None
+
+                        #前置が無いならlastに代入
+                        if last_operator_2 == None:
+                            last_variable = variable
 
                     # op 2
                     if last_operator_2 != None:
@@ -420,11 +428,15 @@ class GrimRunner:
                         # 実行する
                         runstack.run_function(
                             last_operator_1, self.__assign_params(last_operator_1, [variable]))
-                        last_variable = self.__run_fun(runstack)
+                        variable = self.__run_fun(runstack)
                         runstack.end_function()
 
                         #リセット
                         last_operator_1 = None
+
+                        #前置が無いならlastに代入
+                        if last_operator_2 == None:
+                            last_variable = variable
 
                     # op 2
                     if last_operator_2 != None:

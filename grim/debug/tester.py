@@ -3,25 +3,28 @@
 from ..parser.interpreter import Parser
 from ..vm.grimvm import GrimRunner
 
-class Tester:
 
-    def run(self,filepath):
+class DebugAndRun:
+
+    def run(self,filepath,debug = False):
         
-        lines = open(filepath, encoding="utf-8").readlines()
+        if debug:
+            print("========Parse==========")
 
-        program = ""
-        for line in lines:
-            program += line
-
-        parser = Parser(program)
+        parser = Parser(filepath,debug)
         parser.read()
 
-        if False:
+        if debug:
+            print()
             print("========ParseResult==========")
 
+            print()
+            print("--Formulas in <main>--")
             for formula in parser.main.process:
                 print(formula)
 
+            print()
+            print("--Functions in <main>--")
             for name in parser.main.functions:
                 fun = parser.main.functions[name]
                 print(fun)

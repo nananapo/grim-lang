@@ -13,9 +13,19 @@ from grim.error.parseerror import *
 
 class Parser:
 
-    def __init__(self, string):
+    def __init__(self, filepath,debug = False):
+
+        #ファイル読み込み
+        lines = open(filepath, encoding="utf-8").readlines()
+
+        string = ""
+        for line in lines:
+            string += line
+
+        #
         self.program = string
         self.program_len = len(self.program)
+        self.enable_debug = debug
         self.main = Function("main", Function.ROOT, Function.TYPE_FUNCTION)
 
     # read
@@ -25,6 +35,11 @@ class Parser:
     # 区切りを判別
     def is_space(self, string):
         return string == " " or string == "\n"
+
+    #デバッグ
+    def debug(self,*msg):
+        if self.enable_debug:
+            print(*msg)
 
     # funを読む
     """
@@ -58,13 +73,18 @@ class Parser:
             s = self.program[i]
             is_space = self.is_space(s)
 
-            #print("rf", i, s, mode)
+            self.debug("rf", i, s, mode)
 
             # 関数名を読む
             if mode == READ_ID:
 
                 if is_space:
 
+                    Function.check_function_name(strs, parent, i)  # 予約語チェック
+
+                    function.name = strs
+                    function.parent = parent
+                    
                     mode = READ_PROC
 
                 elif s == "(":
@@ -136,7 +156,7 @@ class Parser:
                     if len(function.parameters) != 2:
                         ParameterCountError(2, function.name)
                         
-                i = self.__read_proc(i+1, function)
+                i = self.__read_proc(i, function)
                 success = True
                 break
 
@@ -169,7 +189,7 @@ class Parser:
             s = self.program[i]
             is_space = self.is_space(s)
 
-            #print("fp", i, s, mode,"b",bracket_size)
+            self.debug("fp", i, s, mode,"b",bracket_size)
 
             success = False
 
@@ -249,17 +269,11 @@ class Parser:
     returnはi, return Falseは式が成立しなかった場合,return [i]は式でなかった場合(fun,op1,op2)
     """
 
-    #ID = 0
-
     def __read_formula_value(self, i, parent, formula, endIndex=None):
 
-        #myid = self.ID
-        #self.ID += 1
 
         if endIndex == None:
             endIndex = self.program_len
-
-        #print("formula called", endIndex)
 
         if i == endIndex:
             return False
@@ -275,7 +289,7 @@ class Parser:
             s = self.program[i]
             is_space = self.is_space(s)
 
-            #print("f", i, s, mode, parent.name)
+            self.debug("f", i, s, mode, parent.name)
 
             success = False
 
@@ -376,8 +390,6 @@ class Parser:
             else:
                 EOFError(i).throw()
 
-        #print("formula parsed : ",formula, myid)
-
         return i
 
     # 処理を読む
@@ -406,7 +418,7 @@ class Parser:
             s = self.program[i]
             is_space = self.is_space(s)
 
-            #print("p", i, s, mode)
+            self.debug("p", i, s, mode)
 
             if mode == READ_BASE:
 
@@ -475,7 +487,7 @@ class Parser:
                         VariableNameError(strs, function.name, i).throw()
 
                     if strs == "end":
-                        print("不明なend")
+                        self.debug("不明なend")
                         ParseError(i).throw()
 
                     # 式を追加
@@ -546,7 +558,7 @@ class Parser:
             if mode == READ_STR:
                 s = self.program[i]
 
-                #print("s", i, s, ignore_start)
+                self.debug("s", i, s, ignore_start)
 
                 if s == "\\":
                     if ignore_start:

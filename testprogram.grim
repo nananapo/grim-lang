@@ -1,0 +1,27 @@
+op1 #(com)
+    com + 1
+end
+
+op2 +(va1 va2)
+    __plus(va1 va2)
+end
+
+op2 =(;na va)
+    __assign(na va)
+end
+
+print("print string test")
+
+__assign(assign_test1 "assign test1")
+print(assign_test1)
+
+assign_test2 = "assign test2"
+print(assign_test2)
+
+print(# "op1 test")
+
+print("front " + #(1))
+print("mid " + +(1 2))
+
+print("\"")
+print('\'')
