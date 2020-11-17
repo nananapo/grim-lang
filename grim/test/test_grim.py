@@ -1,8 +1,8 @@
 from grim.vm.grimvm import GrimRunner
 from grim.parser.interpreter import Parser
 
-def test_program(capfd):
-    parser = Parser("./testprogram.grim")
+def test_grim(capfd):
+    parser = Parser(open("grim/test/testprogram.grim", encoding="utf-8"))
     parser.read()
     GrimRunner(parser).run()
 
@@ -22,8 +22,3 @@ def test_program(capfd):
 
     for i in range(0,len(want)):
         assert out[i] == want[i]
-
-if __name__ == "__main__":
-    parser = Parser("./testprogram.grim")
-    parser.read()
-    GrimRunner(parser).run()

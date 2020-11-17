@@ -1,17 +1,15 @@
 
-
-from ..parser.interpreter import Parser
-from ..vm.grimvm import GrimRunner
-
+from grim.vm.grimvm import GrimRunner
+from grim.parser.interpreter import Parser
 
 class DebugAndRun:
 
-    def run(self,filepath,debug = False):
+    def run(self,file,debug = False):
         
         if debug:
             print("========Parse==========")
 
-        parser = Parser(filepath,debug)
+        parser = Parser(file, debug)
         parser.read()
 
         if debug:

@@ -13,10 +13,10 @@ from grim.error.parseerror import *
 
 class Parser:
 
-    def __init__(self, filepath,debug = False):
+    def __init__(self, file,debug = False):
 
         #ファイル読み込み
-        lines = open(filepath, encoding="utf-8").readlines()
+        lines = file.readlines()
 
         string = ""
         for line in lines:
