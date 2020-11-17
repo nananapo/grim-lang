@@ -46,8 +46,7 @@ class Parser:
         # 状態
         READ_ID = 0
         READ_PARAMS = 1
-        READ_PARAMS_BRACKET = 2
-        READ_PROC = 3
+        READ_PROC = 2
         mode = READ_ID
 
         # 設定
@@ -66,17 +65,7 @@ class Parser:
 
                 if is_space:
 
-                    # 名前被りはダメ
-                    if strs in parent.functions:
-                        FunctionAlreadyUsedError(strs, i).throw()
-
-                    Function.check_function_name(strs, parent, i)  # 予約語チェック
-
-                    function.name = strs
-                    function.parent = parent
-
-                    mode = READ_PARAMS_BRACKET
-                    strs = ""
+                    mode = READ_PROC
 
                 elif s == "(":
 
@@ -94,18 +83,6 @@ class Parser:
 
                 else:
                     strs += s
-
-            # 引数の最初の括弧を読む
-            elif mode == READ_PARAMS_BRACKET:
-
-                if is_space:
-                    pass
-                elif s == "(":
-                    mode = READ_PARAMS
-                # 引数スキップもできる
-                else:
-                    mode = READ_PROC
-                    i -= 2
 
             # 引数を読む
             elif mode == READ_PARAMS:
@@ -158,7 +135,7 @@ class Parser:
                 elif function.function_type == Function.TYPE_OP_UNITE:
                     if len(function.parameters) != 2:
                         ParameterCountError(2, function.name)
-
+                        
                 i = self.__read_proc(i+1, function)
                 success = True
                 break
@@ -192,7 +169,7 @@ class Parser:
             s = self.program[i]
             is_space = self.is_space(s)
 
-            print("fp", i, s, mode,"b",bracket_size)
+            #print("fp", i, s, mode,"b",bracket_size)
 
             success = False
 
@@ -208,6 +185,17 @@ class Parser:
                         break
                     else:
                         bracket_size -= 1
+                elif s in String.SYMBOL:
+
+                    formula = Formula()
+                    fm_rs = self.__read_formula_value(
+                        i, function, formula)
+
+                    if isinstance(fm_rs, int):
+                        i = fm_rs
+                        runnable.parameters.append(formula)
+                        mode = READ_BASE
+
                 else:
                     formula_index = i
                     mode = READ_FORMULA
@@ -216,12 +204,12 @@ class Parser:
                 if is_space:
 
                     if bracket_size == 0:
-                    
+
                         formula = Formula()
                         fm_rs = self.__read_formula_value(
                             formula_index, function, formula, endIndex=i)
-                        
-                        if isinstance(fm_rs,int):
+
+                        if isinstance(fm_rs, int):
                             i = fm_rs
                             runnable.parameters.append(formula)
                             mode = READ_BASE
@@ -261,16 +249,17 @@ class Parser:
     returnはi, return Falseは式が成立しなかった場合,return [i]は式でなかった場合(fun,op1,op2)
     """
 
-    ID = 0
+    #ID = 0
 
     def __read_formula_value(self, i, parent, formula, endIndex=None):
 
-        myid = self.ID
-        self.ID += 1
-        print("formula called", myid)
+        #myid = self.ID
+        #self.ID += 1
 
         if endIndex == None:
             endIndex = self.program_len
+
+        #print("formula called", endIndex)
 
         if i == endIndex:
             return False
@@ -286,12 +275,13 @@ class Parser:
             s = self.program[i]
             is_space = self.is_space(s)
 
-            print("f", i, s, mode, parent.name)
+            #print("f", i, s, mode, parent.name)
 
             success = False
 
             if mode == READ_VALUE:
                 if is_space:
+
                     if strs == "":
                         pass
 
@@ -338,6 +328,7 @@ class Parser:
                         formula.value = Variable(strs)
                         strs = ""
                         success = True
+
                         break
 
                 # " => 文字
@@ -346,11 +337,12 @@ class Parser:
                     # 文字を呼んで追加する
                     res = self.__read_str(i+1, s)
                     i, value = res[0], res[1]
-                    
+
                     formula.value = value
 
                     strs = ""
                     success = True
+
                     break
 
                 elif s == "(":
@@ -384,7 +376,7 @@ class Parser:
             else:
                 EOFError(i).throw()
 
-        print(formula, myid)
+        #print("formula parsed : ",formula, myid)
 
         return i
 
@@ -392,6 +384,7 @@ class Parser:
     """
     全ての処理は式
     一連の処理もオブジェクトに => ifとかも
+    TODO ()
     """
 
     def __read_proc(self, i, function):
@@ -413,26 +406,13 @@ class Parser:
             s = self.program[i]
             is_space = self.is_space(s)
 
-            print("p", i, s, mode)
+            #print("p", i, s, mode)
 
             if mode == READ_BASE:
 
                 if is_space:
                     pass
-
-                # 文字開始
-                elif s in String.SYMBOL:
-                    
-                    formula = Formula()
-                    fm_rs = self.__read_formula_value(i, function, formula)
-
-                    if isinstance(fm_rs,int):
-                        i = fm_rs
-                        function.process.append(formula)
-                    elif isinstance(fm_rs, list):
-                        i = fm_rs[0]
-
-                # 変数名を読む
+                # 値を読む
                 else:
                     mode = READ_ASSIGN
                     strs = s
@@ -450,8 +430,8 @@ class Parser:
                     if strs == "end":
                         success = True
                         break
-                    
-                    #式を追加
+
+                    # 式を追加
                     formula = Formula()
                     fm_rs = self.__read_formula_value(
                         assign_index, function, formula)
@@ -530,7 +510,7 @@ class Parser:
                 fm_rs = self.__read_formula_value(
                     assign_index, function, formula)
 
-                if isinstance(fm_rs,int):
+                if isinstance(fm_rs, int):
                     i = fm_rs
                     function.process.append(formula)
                 elif isinstance(fm_rs, list):
@@ -558,18 +538,32 @@ class Parser:
         # 設定
         string = String()
         strs = ""
+        ignore_start = False
 
         success = False
 
         for i in range(i, len(self.program)):
             if mode == READ_STR:
                 s = self.program[i]
-                print("s", i, s)
-                if s == startWith:
-                    string.string = strs
-                    success = True
-                    break
+
+                #print("s", i, s, ignore_start)
+
+                if s == "\\":
+                    if ignore_start:
+                        strs += "\\"
+                    ignore_start = True
+                elif s == startWith:
+                    if ignore_start:
+                        strs += startWith
+                        ignore_start = False
+                    else:
+                        string.string = strs
+                        success = True
+                        break
                 else:
+                    if ignore_start:
+                        ignore_start = False
+                        strs += "\\"
                     strs += s
 
         if not success:

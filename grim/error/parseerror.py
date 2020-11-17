@@ -1,7 +1,7 @@
 class ParseError:
-    def __init__(self, index=0):
+    def __init__(self, reason,index):
         index = str(index)
-        self.error = "ParseError :インデックス " + index
+        self.error = "ParseError :理由 "+reason+" :インデックス " + index
 
     def name(self):
         return "ParseError"

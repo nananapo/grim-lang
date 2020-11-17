@@ -1,0 +1,34 @@
+op1 #(com)
+    com
+end
+
+op2 +(va1 va2)
+    __plus(va1 va2)
+end
+
+op2 =(;na va)
+    __assign(na va)
+end
+
+print("出力テスト")
+print("入力値 : "+ input("入力テスト : 値を入力"))
+
+print("割り当てテスト : __assign")
+__assign(assign_test1 "test1 is success")
+print(assign_test1)
+
+print("割り当てテスト : 名前型受け取り")
+assign_test2 = "test2 is success"
+print(assign_test2)
+
+print("TODO 割り当てテスト(数値文字列)")
+
+print(# "前置演算子テスト")
+
+print("演算子を関数のように使うテスト")
+print("前置 " + #(1))
+print("中置 " + +(1 2))
+
+print("エスケープシーケンステスト")
+print("\"")
+print('\'')

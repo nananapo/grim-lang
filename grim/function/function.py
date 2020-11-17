@@ -25,7 +25,7 @@ class Function:
 
     @staticmethod
     def check_function_name(name,parent,index):
-        if name in BuiltIn.KEYWORD or ":" in name or ")" in name or name == ";" or '"' in name or "'" in name:
+        if name == "" or name in BuiltIn.KEYWORD or ":" in name or ")" in name or name == ";" or '"' in name or "'" in name:
             VariableNameError(name, parent.name, index).throw()
 
 class Parameter:
@@ -36,5 +36,5 @@ class Parameter:
 
     @staticmethod
     def check_parameter_name(name, parent, index):
-        if name in BuiltIn.KEYWORD or ":" in name or ")" in name or name == ";" or '"' in name or "'" in name:
+        if name == "" or name in BuiltIn.KEYWORD or ":" in name or ")" in name or name == ";" or '"' in name or "'" in name:
             VariableNameError(name, parent.name, index).throw()

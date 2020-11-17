@@ -25,13 +25,13 @@ class GrimRunner:
     # Variable,Formulaを返す -> リストなら終了(return) リストの最初だけ使う
     # TODO 不定形は返せない
     # return_listは引数用 -> 結果を全て返す
+    
     def __run_fun(self, runstack, return_list=False, processes=None):
 
         parentfunction, variables = runstack.get_process_and_variable()
 
         # 実行
         index = 0
-        result = None
         result_set = []
 
         # TODO 計算順序を付けるなら list にして処理を別に回す必要がある
@@ -152,8 +152,8 @@ class GrimRunner:
 
                         FunctionNotFoundError(variable.name).throw()
 
-                    # 引数あり関数
-                    elif search_result.result == SearchResult.RESULT_FUNCTION:
+                    # 引数あり関数 op1, op2も
+                    elif search_result.result == SearchResult.RESULT_FUNCTION or search_result.result == SearchResult.RESULT_OPERATOR_ALTER_RIGHT or search_result.result == SearchResult.RESULT_OPERATOR_UNITE:
 
                         function = search_result.get_function()
 
@@ -187,22 +187,12 @@ class GrimRunner:
                         last_variable = result
                         mode = READ_MUST_OPERATOR
 
-                    # op1
-                    elif search_result.result == SearchResult.RESULT_OPERATOR_ALTER_RIGHT:
-
-                        last_operator_1 = search_result.get_function()
-                        mode = READ_MUST_VARIABLE
-
-                    # op2 -> エラー
-                    elif search_result.result == SearchResult.RESULT_OPERATOR_UNITE:
-
-                        VMError().throw()
-
                 else:
                     VMError().throw()
 
             # 前に式がある状態
             elif mode == READ_MUST_OPERATOR:
+
 
                 # 文字
                 if variable_type == ClassType.TYPE_STRING or variable_type == ClassType.TYPE_NUMERIC:
@@ -210,6 +200,7 @@ class GrimRunner:
                     if return_list == True:
                         result_set.append(last_variable)
                     last_variable = None
+
                     mode = READ_OP1_OR_VARIABLE
                     continue
 
@@ -258,7 +249,7 @@ class GrimRunner:
                         # 実行する
                         runstack.run_function(
                             last_operator_1, self.__assign_params(last_operator_1, [variable]))
-                        variable = self.__run_fun(runstack)
+                        last_variable = self.__run_fun(runstack)
                         runstack.end_function()
 
                         #リセット
@@ -351,7 +342,7 @@ class GrimRunner:
                         # 実行する
                         runstack.run_function(
                             last_operator_1, self.__assign_params(last_operator_1, [variable]))
-                        variable = self.__run_fun(runstack)
+                        last_variable = self.__run_fun(runstack)
                         runstack.end_function()
 
                         #リセット
@@ -377,18 +368,18 @@ class GrimRunner:
                     # 検索
                     search_result = runstack.search_variable(variable.name)
 
-                    # op1,op2,見つからない -> エラー
-                    if search_result.result == SearchResult.RESULT_NOT_FOUND or search_result.result == SearchResult.RESULT_OPERATOR_ALTER_RIGHT or search_result.result == SearchResult.RESULT_OPERATOR_UNITE:
+                    # 見つからない -> エラー
+                    if search_result.result == SearchResult.RESULT_NOT_FOUND:
 
-                        VMError().throw()
+                        VMError("関数"+search_result.name+"が見つかりませんでした").throw()
 
                     # 変数
                     elif search_result.result == SearchResult.RESULT_VARIABLE:
 
                         variable = search_result.variables[variable.name]
 
-                    # 引数あり関数
-                    elif search_result.result == SearchResult.RESULT_FUNCTION:
+                    # 引数あり関数 ,op1,op2
+                    elif search_result.result == SearchResult.RESULT_FUNCTION or search_result.result == SearchResult.RESULT_OPERATOR_ALTER_RIGHT or search_result.result == SearchResult.RESULT_OPERATOR_UNITE:
 
                         function = search_result.get_function()
 
@@ -429,7 +420,7 @@ class GrimRunner:
                         # 実行する
                         runstack.run_function(
                             last_operator_1, self.__assign_params(last_operator_1, [variable]))
-                        variable = self.__run_fun(runstack)
+                        last_variable = self.__run_fun(runstack)
                         runstack.end_function()
 
                         #リセット
@@ -456,7 +447,7 @@ class GrimRunner:
 
         if last_variable != None:
             result_set.append(last_variable)
-
+            
         if return_list:
             #結果セットを返す
             return result_set

@@ -1,6 +1,7 @@
-from grim.vm.runstack import SearchResult
-from grim.error.vmerror import ParameterNotMatchError, VariableNotFoundError
-from grim.formula.variable import *
+from ..vm.runstack import SearchResult
+from ..error.vmerror import ParameterNotMatchError, VariableNotFoundError
+from ..formula.variable import *
+from ..formula.primitive import *
 
 class BuiltInRunner:
 
@@ -12,7 +13,7 @@ class BuiltInRunner:
 
         if name == "input":
             print(*params)
-            result = input()
+            result = String(input())
         elif name == "print":
             print(*params)
             result = VariableNone()

@@ -1,7 +1,7 @@
 #実行時エラー
 class VMError:
-    def __init__(self,index):
-        self.error = "VMError"
+    def __init__(self,reason):
+        self.error = "VMError : " + reason
 
     def name(self):
         return "VMError"
