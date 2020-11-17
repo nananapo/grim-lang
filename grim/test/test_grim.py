@@ -12,10 +12,15 @@ def test_grim(capfd):
 
     want = [
         "print string test",
+
         "assign test1",
+        "assign test2",
+
         "op1 test1",
+
         "front 2",
         "mid 3",
+        
         "\"",
         "'",
     ]
