@@ -14,8 +14,8 @@ class VMError:
 
 class FunctionNotFoundError(VMError):
 
-    def __init__(self, def_id):
-        self.error = "関数 " + def_id + "が見つかりませんでした"
+    def __init__(self, fun):
+        self.error = "関数 " + fun + "が見つかりませんでした"
 
     def name(self):
         return "FunctionNotFoundError"

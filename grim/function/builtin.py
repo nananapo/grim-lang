@@ -1,6 +1,4 @@
 
-from grim.formula.variable import *
-
 class BuiltIn:
 
     #ビルトイン関数 TODO 演算
@@ -19,7 +17,6 @@ class BuiltIn:
         #TODO int string number
     ])
 
-    #予約語
-    KEYWORD = set([
-        "fun","op1","op2","end"
+    MARK = set([
+        "",":",";",")"
     ])

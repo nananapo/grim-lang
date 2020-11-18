@@ -34,7 +34,7 @@ class BuiltInRunner:
             else:
                 VariableNotFoundError(params[0].name).throw()
 
-            result = VariableNone()
+            result = params[1]
 
         elif name == "__plus":
 

@@ -1,105 +1,110 @@
-"""
-いきなり-,op - はマイナス
-全ては値渡し
-"""
-from grim.function.builtin import BuiltIn
-from ..function.function import *
-from ..formula.primitive import *
-from ..formula.variable import *
-from ..formula.formula import Formula
-from ..error.vmerror import *
+from grim.function.function import *
+from grim.formula.primitive import *
+from grim.formula.variable import *
+from grim.formula.formula import Formula
+from grim.error.vmerror import *
 from grim.error.parseerror import *
 
 
 class Parser:
 
-    def __init__(self, file,debug = False):
+    def __init__(self, file, debug=False):
 
-        #ファイル読み込み
+        # ファイル読み込み
         lines = file.readlines()
 
         string = ""
         for line in lines:
             string += line
 
-        #
+        # 解析
         self.program = string
         self.program_len = len(self.program)
         self.enable_debug = debug
-        self.main = Function("main", Function.ROOT, Function.TYPE_FUNCTION)
+        self.main = Function(name="main", parent=Function.ROOT,
+                                function_type=Function.TYPE_FUNCTION)
 
     # read
-    def read(self, i=0):
-        self.__read_proc(i, self.main)
+    def read(self):
+        self.__read_process(index=0,function=self.main)
 
     # 区切りを判別
     def is_space(self, string):
         return string == " " or string == "\n"
 
-    #デバッグ
-    def debug(self,*msg):
+    # デバッグ
+    def debug(self, *msg):
         if self.enable_debug:
             print(*msg)
 
     # funを読む
-    """
-    関数を定義するワード : fun,op1,op2
-    
-    #関数
-    fun 関数名(引数1 引数2 ・・・)
-        処理
-    end
-    引数が無い場合は括弧をスキップできる
-
-    #op1,op2
-    op1:引数を1つ持つオペレーター / 右の式に作用する
-    op2:引数を2つ持つオペレーター / 左右の式に作用する
-    """
-
-    def __read_fun(self, i, parent, function):
+    def __read_fun(self, *,index, parent, function_type):
 
         # 状態
         READ_ID = 0
-        READ_PARAMS = 1
-        READ_PROC = 2
-        mode = READ_ID
+        READ_PRIORITY = 1
+        READ_PARAMS = 2
+        READ_PROC = 3
+
+        if function_type == Function.TYPE_FUNCTION:
+            mode = READ_ID
+        else:
+            mode = READ_PRIORITY
 
         # 設定
         strs = ""
-
         success = False
+        function = Function(parent=parent,name = None,function_type=function_type)
 
-        while i < self.program_len:
-            s = self.program[i]
+        while index < self.program_len:
+            s = self.program[index]
             is_space = self.is_space(s)
 
-            self.debug("rf", i, s, mode)
+            self.debug("rf", index, s, mode)
 
             # 関数名を読む
             if mode == READ_ID:
 
                 if is_space:
-
-                    Function.check_function_name(strs, parent, i)  # 予約語チェック
+                    
+                    # 予約語チェック
+                    if not Function.check_name(strs):
+                        FunctionAlreadyUsedError(index,name = strs)
 
                     function.name = strs
                     function.parent = parent
-                    
+
                     mode = READ_PROC
+                    strs = ""
 
                 elif s == "(":
 
-                    # 名前被りはダメ
-                    if strs in parent.functions:
-                        FunctionAlreadyUsedError(strs, i).throw()
-
-                    Function.check_function_name(strs, parent, i)  # 予約語チェック
+                    # 予約語チェック
+                    if not Function.check_name(strs):
+                        FunctionAlreadyUsedError(index, name=strs)
 
                     function.name = strs
                     function.parent = parent
 
                     mode = READ_PARAMS
                     strs = ""
+
+                else:
+                    strs += s
+
+            elif mode == READ_PRIORITY:
+
+                if is_space:
+
+                    if strs !="":
+                        res = Numeric.is_num(strs)
+                        if isinstance(res, bool):
+                            ParseError(index, reason="オペレーターの優先度は数値である必要があります").throw()
+                        else:
+                            function.priority = res
+                        
+                        mode = READ_ID
+                        strs = ""
 
                 else:
                     strs += s
@@ -113,18 +118,15 @@ class Parser:
 
                         # 同じ名前の引数はエラーを出す
                         if strs in function.parameters:
-                            ParameterNameError(strs, parent.name, i).throw()
+                            ParameterNameError(index,param = strs, fun = function.name).throw()
 
-                        Parameter.check_parameter_name(
-                            strs, parent, i)  # 予約語チェック
+                        # 予約語チェック
+                        if not Parameter.check_name(strs):
+                            VariableNameError(index, variable=strs)
 
                         # 追加
                         function.parameters.append(Parameter(strs))
                         strs = ""
-
-                    else:
-                        # 何もない場合はスキップ
-                        pass
 
                 elif s == ")":
 
@@ -132,10 +134,11 @@ class Parser:
 
                         # 同じ名前の引数はエラーを出す
                         if strs in function.parameters:
-                            ParameterNameError(strs, parent.name, i).throw()
+                            ParameterNameError(index, param=strs, fun=function.name).throw()
 
-                        Parameter.check_parameter_name(
-                            strs, parent, i)  # 予約語チェック
+                        # 予約語チェック
+                        if not Parameter.check_name(strs):
+                            VariableNameError(index, variable=strs)
 
                         # 追加
                         function.parameters.append(Parameter(strs))
@@ -149,400 +152,290 @@ class Parser:
             elif mode == READ_PROC:
 
                 # 引数の個数チェック
-                if function.function_type == Function.TYPE_OP_ALTER_RIGHT:
+                if function.function_type == Function.TYPE_OP_FRONT or Function.TYPE_OP_BACK:
                     if len(function.parameters) != 1:
-                        ParameterCountError(1, function.name)
-                elif function.function_type == Function.TYPE_OP_UNITE:
+                        ParameterCountError(need = 1, fun = function.name)
+                elif function.function_type == Function.TYPE_OP_MID:
                     if len(function.parameters) != 2:
-                        ParameterCountError(2, function.name)
-                        
-                i = self.__read_proc(i, function)
+                        ParameterCountError(need = 2, fun = function.name)
+
+                index = self.__read_process(index = index, function = function)
                 success = True
                 break
 
-            i += 1
+            index += 1
 
         if not success:
-            EOFError(i).throw()
+            EOFError(index,info="関数が終了しませんでした").throw()
 
-        return i-1
+        if function.name in parent.functions:
+            FunctionAlreadyUsedError(index,name = function.name).throw()
 
-    # funを呼ぶときの引数を読む
-    """
-    全て式 スペース区切り
-    ex
-    式 式
-    """
+        parent.functions[function.name] = function
+        
+        return index
 
-    def __read_fun_params(self, i, function, runnable):
-
-        READ_BASE = 0
-        READ_FORMULA = 1
-        mode = READ_BASE
-
-        formula_index = i
-        bracket_size = 0  # (+1 )-1
-
-        success = False
-
-        while i < self.program_len:
-            s = self.program[i]
-            is_space = self.is_space(s)
-
-            self.debug("fp", i, s, mode,"b",bracket_size)
-
-            success = False
-
-            if mode == READ_BASE:
-
-                if is_space:
-                    pass
-                elif s == "(":
-                    bracket_size += 1
-                elif s == ")":
-                    if bracket_size == 0:
-                        success = True
-                        break
-                    else:
-                        bracket_size -= 1
-                elif s in String.SYMBOL:
-
-                    formula = Formula()
-                    fm_rs = self.__read_formula_value(
-                        i, function, formula)
-
-                    if isinstance(fm_rs, int):
-                        i = fm_rs
-                        runnable.parameters.append(formula)
-                        mode = READ_BASE
-
-                else:
-                    formula_index = i
-                    mode = READ_FORMULA
-
-            elif mode == READ_FORMULA:
-                if is_space:
-
-                    if bracket_size == 0:
-
-                        formula = Formula()
-                        fm_rs = self.__read_formula_value(
-                            formula_index, function, formula, endIndex=i)
-
-                        if isinstance(fm_rs, int):
-                            i = fm_rs
-                            runnable.parameters.append(formula)
-                            mode = READ_BASE
-
-                elif s == "(":
-                    bracket_size += 1
-                elif s == ")":
-
-                    if bracket_size == 0:
-
-                        formula = Formula()
-                        fm_rs = self.__read_formula_value(
-                            formula_index, function, formula, endIndex=i)
-
-                        if isinstance(fm_rs, int):
-                            i = fm_rs
-                            runnable.parameters.append(formula)
-                            success = True
-                        break
-
-                    else:
-                        bracket_size -= 1
-
-                else:
-                    pass
-            i += 1
-
-        if not success:
-            EOFError(i).throw()
-
-        return i+1
-
-    # 式の値を読む
-    """
-    関数を呼ぶときは引数が無い場合スキップできる,引数アリのときの指定は(の前にスペースがあってはいけない
-    endIndex はexclusive
-    returnはi, return Falseは式が成立しなかった場合,return [i]は式でなかった場合(fun,op1,op2)
-    """
-
-    def __read_formula_value(self, i, parent, formula, endIndex=None):
-
+    # 式を一つ読む
+    def __read_formula(self, *, index, formula,endIndex = None):
 
         if endIndex == None:
             endIndex = self.program_len
 
-        if i == endIndex:
-            return False
 
-        READ_VALUE = 0
-        mode = READ_VALUE
+        SKIP_SPACE = 0
+        READ_ONE = 1  # 1文字目を読む
+        READ_FORMULA = 2  # 1単語を読む
+        mode = SKIP_SPACE
 
         strs = ""
-
         success = False
 
-        while i < endIndex:
-            s = self.program[i]
+        while index < endIndex:
+            s = self.program[index]
             is_space = self.is_space(s)
 
-            self.debug("f", i, s, mode, parent.name)
-
+            self.debug("formula", index, s,mode)
             success = False
 
-            if mode == READ_VALUE:
+            if mode == SKIP_SPACE:
+
+                if is_space:
+                    pass
+                else:
+                    mode = READ_ONE
+                    continue
+
+            elif mode == READ_ONE:
+
+                if s in String.SYMBOL:
+
+                    # 文字を呼んで追加する
+                    res = self.__read_str(index=index + 1, startWith=s)
+                    index, value = res[0], res[1]
+
+                    formula.value = value
+                    success = True
+                    break
+
+                elif s == "(":
+                    
+                    # 式を追加
+                    br_formula = Formula(value=[])
+                    index = self.__read_process(
+                        index=index+1, function=br_formula, bracket_mode=True)
+                    formula.value = br_formula
+                    success = True
+                    break
+
+                else:
+                    mode = READ_FORMULA
+                    continue
+            elif mode == READ_FORMULA:
+
                 if is_space:
 
                     if strs == "":
                         pass
-
-                    elif strs in BuiltIn.KEYWORD:
-                        if strs == "end":
-                            ParseError(i).throw()
-
-                        elif strs == "fun":
-
-                            function = Function(
-                                "undefined", parent, Function.TYPE_FUNCTION)
-                            i = self.__read_fun(i+1, parent, function)
-                            parent.functions[function.name] = function
-                            strs = ""
-                            success = True
-                            return [i]
-
-                        elif strs == "op1":
-
-                            function = Function(
-                                "undefined", parent, Function.TYPE_OP_ALTER_RIGHT)
-                            i = self.__read_fun(i+1, parent, function)
-                            parent.functions[function.name] = function
-                            strs = ""
-                            success = True
-                            return [i]
-
-                        elif strs == "op2":
-
-                            function = Function(
-                                "undefined", parent, Function.TYPE_OP_UNITE)
-                            i = self.__read_fun(i+1, parent, function)
-                            parent.functions[function.name] = function
-                            strs = ""
-                            success = True
-                            return [i]
-
                     else:
 
-                        # :だけはだめ
-                        if strs == ":":
-                            VariableNameError(strs, parent.name, i).throw()
+                        if not Variable.check_name(strs):
+                            VariableNameError(index, variable=strs).throw()
 
                         formula.value = Variable(strs)
-                        strs = ""
                         success = True
-
                         break
-
-                # " => 文字
-                elif s in String.SYMBOL:
-
-                    # 文字を呼んで追加する
-                    res = self.__read_str(i+1, s)
-                    i, value = res[0], res[1]
-
-                    formula.value = value
-
-                    strs = ""
-                    success = True
-
-                    break
 
                 elif s == "(":
 
-                    # 空なのにいきなり(がきたらエラー TODO 計算順序
-                    if strs == "":
-                        ParseError(i).throw()
-
-                    # :だけはだめ
-                    if strs == ":":
-                        VariableNameError(strs, parent.name, i).throw()
+                    if not Variable.check_name(strs):
+                        VariableNameError(index, variable=strs).throw()
 
                     runnable = Runnable(strs)
-                    i = self.__read_fun_params(i+1, parent, runnable)
+                    index = self.__read_process(
+                        index=index+1, function=runnable, bracket_mode=True)
                     formula.value = runnable
-
-                    strs = ""
                     success = True
+
                     break
+
                 else:
                     strs += s
 
-            i += 1
+            index += 1
 
         if not success:
-            if mode == READ_VALUE:
-                if strs != "":
-                    formula.value = Variable(strs)
-                else:
-                    EOFError(i).throw()
-            else:
-                EOFError(i).throw()
+            if mode == READ_FORMULA and strs != "":
 
-        return i
+                if not Variable.check_name(strs):
+                    VariableNameError(index, variable=strs).throw()
+
+                formula.value = Variable(strs)
+
+            else:
+                self.debug("実行されないはずの処理")
+                return False
+
+        return index
 
     # 処理を読む
-    """
-    全ての処理は式
-    一連の処理もオブジェクトに => ifとかも
-    TODO ()
-    """
+    def __read_process(self, *, index, function, bracket_mode=False):
 
-    def __read_proc(self, i, function):
-
-        # 状態
-        READ_BASE = 0
-        READ_ASSIGN = 1
-        mode = READ_BASE
-
-        # 設定
-        formula = None
+        SKIP_SPACE = 0
+        READ_ONE = 1  # 1文字目を読む
+        READ_FORMULA = 2  # 1単語を読む
+        mode = SKIP_SPACE
 
         strs = ""
-        assign_index = i
+        start_index = index  # 式の開始地点
 
         success = False
 
-        while i < self.program_len:
-            s = self.program[i]
+        while index < self.program_len:
+            s = self.program[index]
             is_space = self.is_space(s)
 
-            self.debug("p", i, s, mode)
+            self.debug("proc", index, s,mode)
 
-            if mode == READ_BASE:
+            if mode == SKIP_SPACE:
 
                 if is_space:
                     pass
-                # 値を読む
                 else:
-                    mode = READ_ASSIGN
-                    strs = s
-                    assign_index = i
+                    mode = READ_ONE
+                    start_index = index
+                    continue
 
-            # 変数名を読む
-            elif mode == READ_ASSIGN:
+            elif mode == READ_ONE:
 
-                if is_space:
+                if s in String.SYMBOL:
 
-                    # :だけはだめ
-                    if strs == ":":
-                        VariableNameError(strs, function.name, i).throw()
+                    # 式を追加
+                    formula = Formula()
+                    index = self.__read_formula(
+                        index=index, formula=formula)
 
-                    if strs == "end":
+                    if bracket_mode:
+                        function.value.append(formula)
+                    else:
+                        function.process.append(formula)
+
+                    # 戻る
+                    mode = SKIP_SPACE
+                    strs = ""
+
+                elif s == "(":
+
+                    # 式を追加
+                    formula = Formula(value=[])
+                    index = self.__read_process(
+                        index=index+1, function=formula, bracket_mode=True)
+
+                    if bracket_mode:
+                        function.value.append(formula)
+                    else:
+                        function.process.append(formula)
+
+                    # 戻る
+                    mode = SKIP_SPACE
+                    strs = ""
+
+                else:
+
+                    if bracket_mode and s == ")":
                         success = True
                         break
 
-                    # 式を追加
-                    formula = Formula()
-                    fm_rs = self.__read_formula_value(
-                        assign_index, function, formula)
+                    # 読む
+                    mode = READ_FORMULA
+                    strs = s
 
-                    if isinstance(fm_rs, int):
-                        i = fm_rs
-                        function.process.append(formula)
-                    elif isinstance(fm_rs, list):
-                        i = fm_rs[0]
+            elif mode == READ_FORMULA:
 
-                    mode = READ_BASE
-                    strs = ""
+                if is_space or s == "(":
 
-                # いきなり文字開始
-                elif s in String.SYMBOL:
+                    # 関数関連の予約語
+                    if strs in Function.SYMBOL:
 
-                    # :だけはだめ
-                    if strs == ":":
-                        VariableNameError(strs, function.name, i).throw()
+                        if bracket_mode:
+                            ParseError(
+                                start_index, reason="括弧の中で関数の宣言、終了は出来ません")
 
-                    # 式を追加
-                    formula = Formula()
-                    fm_rs = self.__read_formula_value(
-                        assign_index, function, formula)
+                        # 同名の関数は存在しない
+                        if not is_space:
+                            VariableKeywordError(index, variable=strs).throw()
 
-                    if isinstance(fm_rs, int):
-                        i = fm_rs
-                        function.process.append(formula)
-                    elif isinstance(fm_rs, list):
-                        i = fm_rs[0]
+                        # end で終了
+                        if strs == "end":
+                            success = True
+                            break
 
-                    # 戻る
-                    mode = READ_BASE
-                    strs = ""
+                        index = self.__read_fun(index=index, parent=function,
+                                        function_type=Function.symbol2type(strs))
 
-                # 引数ありRunnable
-                elif s == "(":
+                    else:
 
-                    # :だけはだめ
-                    if strs == ":":
-                        VariableNameError(strs, function.name, i).throw()
+                        # 式を追加
+                        formula = Formula()
+                        index = self.__read_formula(
+                            index=start_index, formula=formula)
 
-                    if strs == "end":
-                        self.debug("不明なend")
-                        ParseError(i).throw()
-
-                    # 式を追加
-                    formula = Formula()
-                    fm_rs = self.__read_formula_value(
-                        assign_index, function, formula)
-
-                    if isinstance(fm_rs, int):
-                        i = fm_rs
-                        function.process.append(formula)
-                    elif isinstance(fm_rs, list):
-                        i = fm_rs[0]
+                        if bracket_mode:
+                            function.value.append(formula)
+                        else:
+                            function.process.append(formula)
 
                     # 戻る
-                    mode = READ_BASE
+                    mode = SKIP_SPACE
                     strs = ""
 
+                elif s == ")" and bracket_mode:
+                    if strs != "":
+                        # 式を追加
+                        formula = Formula()
+                        index = self.__read_formula(
+                            index=start_index, formula=formula,endIndex = index)
+
+                        if bracket_mode:
+                            function.value.append(formula)
+                        else:
+                            function.process.append(formula)
+                    # 戻る
+                    mode = SKIP_SPACE
+                    success = True
+                    break
                 else:
+
                     strs += s
 
-            i += 1
+            index += 1
 
         if not success:
 
-            # endで終了の場合もある
+            # endで終了、mainなら無視
             if strs == "end":
                 pass
-            elif strs != "":
+            elif mode == READ_FORMULA or mode == READ_ONE:
 
                 # 式を追加
                 formula = Formula()
-                fm_rs = self.__read_formula_value(
-                    assign_index, function, formula)
+                index = self.__read_formula(
+                    index=start_index, formula=formula)
 
-                if isinstance(fm_rs, int):
-                    i = fm_rs
+                if bracket_mode:
+                    function.value.append(formula)
+                else:
                     function.process.append(formula)
-                elif isinstance(fm_rs, list):
-                    i = fm_rs[0]
 
             elif function == self.main:
                 pass
             else:
-                EOFError(i).throw()
+                EOFError(index, info=(
+                    "括弧" if bracket_mode else "関数")+"が終了しませんでした").throw()
 
-        return i
+        return index
 
     # 文字を読む
-    """
-    文字の定義
-    "文字 \\ \n \" "
-    TODO エスケープシーケンス
-    """
-
-    def __read_str(self, i, startWith):
+    def __read_str(self, *, index, startWith):
 
         READ_STR = 0
         mode = READ_STR
@@ -554,11 +447,11 @@ class Parser:
 
         success = False
 
-        for i in range(i, len(self.program)):
+        for index in range(index, len(self.program)):
             if mode == READ_STR:
-                s = self.program[i]
+                s = self.program[index]
 
-                self.debug("s", i, s, ignore_start)
+                self.debug("s", index, s, ignore_start)
 
                 if s == "\\":
                     if ignore_start:
@@ -579,6 +472,6 @@ class Parser:
                     strs += s
 
         if not success:
-            EOFError(i).throw()
+            EOFError(index, info="文字が終了しませんでした").throw()
 
-        return [i, string]
+        return [index, string]

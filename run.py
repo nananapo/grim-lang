@@ -1,10 +1,11 @@
-from grim.vm.grimvm import GrimRunner
+from grim.test.debugrun import DebugAndRun
 from grim.parser.interpreter import Parser
 
 def run():
-    parser = Parser(open("grim/test/testprogram.grim", encoding="utf-8"))
-    parser.read()
-    GrimRunner(parser).run()
+    DebugAndRun.run(file = open("grim/test/testprogram.grim", encoding="utf-8"), debug = False, running =  True)
+    #parser = Parser()
+    #parser.read()
+    #GrimRunner(parser).run()
 
 if __name__ == "__main__":
     run()
