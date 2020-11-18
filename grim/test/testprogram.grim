@@ -1,13 +1,29 @@
-op1 #(com)
+opf 100 #(com)
     com + 1
 end
 
-op2 +(va1 va2)
+opm 2 +(va1 va2)
     __plus(va1 va2)
 end
 
-op2 =(;na va)
+opm 2 -(va1 va2)
+    __minus(va1 va2)
+end
+
+opm 3 *(va1 va2)
+    __mul(va1 va2)
+end
+
+opm 3 /(va1 va2)
+    __div(va1 va2)
+end
+
+opm 0 =(;na va)
     __assign(na va)
+end
+
+opb 10 °(do)
+    do / 5
 end
 
 print("print string test")
@@ -22,6 +38,23 @@ print(# "op1 test")
 
 print("front " + #(1))
 print("mid " + +(1 2))
+print("back " + °(10)) # "2"
 
+# "エスケープシーケンス"
 print("\"")
 print('\'')
+
+
+# "演算子の優先度のテスト"
+print(# 9) # "front 10"
+print(1 + 100) # "mid 101"
+print(9 °) # "back 1.8"
+
+print(2 + 3 * 3) # "mid 11"
+print(# 9 °) # "backfront 2.0"
+print(# 9 ° + # 9 ° * # 99 °) # "組み合わせ 42"
+print(# # # # 621 ° ° ° °) # "連続 1.0"
+
+print((1 + 3) * (2 + 3 * 5)) # "括弧 68"
+print(# (1 + 3)) # "5"
+print(# (1 + 3) °) # "1.0"

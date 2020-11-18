@@ -4,7 +4,8 @@ from grim.parser.interpreter import Parser
 
 class DebugAndRun:
 
-    def run(self,file,debug = False):
+    @staticmethod
+    def run(file,debug = False,running = True):
         
         if debug:
             print("========Parse==========")
@@ -33,7 +34,9 @@ class DebugAndRun:
                 print("   ", "---process---")
                 for value in fun.process:
                     print("       ", value)
-                    
-            print("========RUNNING========")
 
-        GrimRunner(parser).run()
+            if running:
+                print("========RUNNING========")
+
+        if running:
+            GrimRunner(parser,enable_debug=debug).run()

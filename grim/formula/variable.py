@@ -1,4 +1,6 @@
-
+from grim.formula.primitive import String
+from grim.function.function import Function
+from grim.function.builtin import BuiltIn
 from .types import ClassType
 from ..error.vmerror import UnknownOperationError
 
@@ -12,6 +14,10 @@ class Variable:
 
     def __str__(self):
         return "Variable<"+self.name+">"
+
+    @staticmethod
+    def check_name(name):
+        return not (name in BuiltIn.MARK or name in Function.SYMBOL or name in String.SYMBOL)
 
 
 class VariableNone(Variable):
@@ -60,10 +66,10 @@ class VariableNone(Variable):
 class Runnable(Variable):  #
     def __init__(self, name, params=None):
         self.name = name
-        self.parameters = params if params != None else []
+        self.value = params if params != None else []
 
     def __str__(self):
-        return "Runnable<"+self.name+">" + str(self.parameters)
+        return "Runnable<"+self.name+">" + str(self.value)
 
     def get_type(self):
         return ClassType.TYPE_RUNNABLE
