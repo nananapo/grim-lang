@@ -1,6 +1,6 @@
-#実行時エラー
+# 実行時エラー
 class VMError:
-    def __init__(self,reason):
+    def __init__(self, reason):
         self.error = "VMError : " + reason
 
     def name(self):
@@ -32,7 +32,7 @@ class VariableNotFoundError(VMError):
 
 class ParameterIsNameClassError(VMError):
 
-    def __init__(self, def_id,name):
+    def __init__(self, def_id, name):
         self.error = "関数 "+def_id+"の引数["+name+"]は名前型なので、名前型か不定型か文字型を渡す必要があります"
 
     def name(self):

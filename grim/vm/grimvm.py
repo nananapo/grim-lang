@@ -1,39 +1,37 @@
-from grim.parser.interpreter import *
-from grim.error.vmerror import *
-from grim.vm.runstack import *
-
+from grim.error.vmerror import ParameterNotMatchError, FunctionNotFoundError, VMError, ParameterIsNameClassError
+from grim.vm.runstack import RunStack, SearchResult
 from grim.formula.name import NameClass
 from grim.formula.types import ClassType
-from grim.formula.primitive import *
-from grim.formula.variable import *
-
+from grim.formula.variable import VariableNone, Indefinite
+from grim.function.function import UncomputedFunction, Function
 from grim.function.builtinrunner import BuiltInRunner
 
 
 class GrimRunner:
 
-    def __init__(self, parser,*,enable_debug = False):
+    def __init__(self, parser, *, enable_debug=False):
         self.parser = parser
         self.enable_debug = enable_debug
 
-    #実行 (同時実行可能)
+    # 実行 (同時実行可能)
+
     def run(self):
         runstack = RunStack()
         runstack.run_function(self.parser.main, {})
-        self.__run_fun(runstack,-1)
+        self.__run_fun(runstack, -1)
         runstack.end_function()
 
     # デバッグ
-    def debug(self,*msg,depth):
-        if self.enable_debug:
-            print("    "*depth , *msg)
 
+    def debug(self, *msg, depth):
+        if self.enable_debug:
+            print("    "*depth, *msg)
 
     # Variable,Formulaを返す -> リストなら終了(return) リストの最初だけ使う
     # TODO 不定形は返せない 終了時の不定形を許さない
     # return_listは引数用 -> 結果を全て返す
 
-    def __run_fun(self, runstack, depth,*,return_list=False, processes=None,run_func = False):
+    def __run_fun(self, runstack, depth, *, return_list=False, processes=None, run_func=False):
 
         depth += 1
 
@@ -61,7 +59,7 @@ class GrimRunner:
             formula = processes[index]
             var = formula.value
 
-            if isinstance(var,list):
+            if isinstance(var, list):
                 var = UncomputedFunction(var)
 
             var_type = var.get_type()
@@ -96,7 +94,7 @@ class GrimRunner:
 
                         # 実行する
                         runstack.run_function(function, {})
-                        var = self.__run_fun(runstack,depth)
+                        var = self.__run_fun(runstack, depth)
                         runstack.end_function()
                     else:
                         var = UncomputedFunction([formula])
@@ -149,7 +147,7 @@ class GrimRunner:
                         # 実行する
                         runstack.run_function(
                             function, self.__assign_params(function, params_set))
-                        var = self.__run_fun(runstack,depth)
+                        var = self.__run_fun(runstack, depth)
                         runstack.end_function()
                     else:
                         var = UncomputedFunction([formula])
@@ -180,15 +178,14 @@ class GrimRunner:
                         runstack=runstack, depth=depth, processes=var.value)
                 else:
                     var = UncomputedFunction(formula)
-            
+
             elif var_type == ClassType.TYPE_UNCOMPOTED:
 
                 if run_func:
                     var = self.__run_fun(depth=depth,
-                        runstack=runstack, processes=var.process)
+                                         runstack=runstack, processes=var.process)
                 else:
                     var = UncomputedFunction([formula])
-
 
             # 取得しなおし
             var_type = var.get_type()
@@ -236,8 +233,6 @@ class GrimRunner:
                         now_formula = [[], [], []]
                         now_stack = [[var], None, []]
                         mode = READ_FORB
-
-
 
                 else:
                     now_formula[0].append(now_stack)
@@ -294,68 +289,30 @@ class GrimRunner:
             result_set.append(self.__run_formula(
                 depth=depth, formulas=formula, runstack=runstack))
 
-
         # 結果を返す
         if return_list:
             self.debug("funend return_list", result_set, depth=depth)
             return result_set
         else:
-            self.debug("funend result ", result_set[len(result_set)-1],depth=depth)
+            self.debug("funend result ",
+                       result_set[len(result_set)-1], depth=depth)
             return result_set[len(result_set)-1]
 
     # マイナス関係あり
-    """
-runfun False False [<grim.formula.formula.Formula object at 0x0000019461B974F0>]
-f 1 Runnable<print>[<grim.formula.formula.Formula object at 0x0000019461B975E0>, <grim.formula.formula.Formula object at 0x0000019461B97670>]
-b 7 <grim.function.function.UncomputedFunction object at 0x0000019461B97820>
-exec [[[[], <grim.function.function.UncomputedFunction object at 0x0000019461B97820>, []]], [], []]
-    formula start
-        runfun False True [<grim.formula.formula.Formula object at 0x0000019461B974F0>]
-        f 1 Runnable<print>[<grim.formula.formula.Formula object at 0x0000019461B975E0>, <grim.formula.formula.Formula object at 0x0000019461B97670>]
-            runfun True False [<grim.formula.formula.Formula object at 0x0000019461B975E0>, <grim.formula.formula.Formula object at 0x0000019461B97670>]
-            f 0 Variable<9>
-            b 3 9
-            f 0 Variable<°>
-            b 6 Operator<°>
-            exec [[[[], <grim.formula.primitive.Numeric object at 0x0000019461B978E0>, [<grim.function.function.Function object at 0x0000019461B970A0>]]], [], []]
-                formula start
-                全体 [[[[], <grim.formula.primitive.Numeric object at 0x0000019461B978E0>, [<grim.function.function.Function object at 0x0000019461B970A0>]]], [], []]
-                formula end 9
-            funend return_list [<grim.formula.primitive.Numeric object at 0x0000019461B978E0>]
 
-        b -1 VariableNone
-        exec [[[[], <grim.formula.variable.VariableNone object at 0x0000019461B979A0>, []]], [], []]
-            formula start
-            全体 [
-                [
-                    [
-                        [],
-                        <grim.formula.variable.VariableNone object at 0x0000019461B979A0>
-                        , 
-                        []
-                    ]
-                ], [], []
-                ]
-            formula end VariableNone
-        funend result  VariableNone
-    全体 [[[[], <grim.formula.variable.VariableNone object at 0x0000019461B979A0>, []]], [], []]
-    formula end VariableNone
-funend result  VariableNone
-
-    """
-    def __run_formula(self, *,depth,formulas,runstack):
+    def __run_formula(self, *, depth, formulas, runstack):
 
         depth += 1
 
-        #降順ソート
-        formulas[2].sort(reverse = True)
+        # 降順ソート
+        formulas[2].sort(reverse=True)
 
         sizeO = len(formulas[2])
 
         self.debug("formula start", sizeO, depth=depth)
 
         if sizeO != 0:
-            for i in range(0,sizeO):
+            for i in range(0, sizeO):
 
                 op = None
                 opIndex = 0
@@ -363,7 +320,7 @@ funend result  VariableNone
                 flopIndex = 0
                 flleft = None
 
-                for j in range(0,sizeO):
+                for j in range(0, sizeO):
                     fun = formulas[1][j]
 
                     if fun.get_priority() == formulas[2][0]:
@@ -386,28 +343,29 @@ funend result  VariableNone
                 del formulas[2][0]
 
                 pa1 = self.__run_op_bf(depth=depth,
-                    formula=formulas[0][opIndex], runstack=runstack)
+                                       formula=formulas[0][opIndex], runstack=runstack)
                 pa2 = self.__run_op_bf(depth=depth,
-                    formula=formulas[0][opIndex+1], runstack=runstack)
+                                       formula=formulas[0][opIndex+1], runstack=runstack)
 
                 self.debug("結合", pa1, pa2, op, depth=depth)
 
-                runstack.run_function(op, self.__assign_params(op, [pa1,pa2]))
-                var = self.__run_fun(runstack, depth,run_func=True)
+                runstack.run_function(op, self.__assign_params(op, [pa1, pa2]))
+                var = self.__run_fun(runstack, depth, run_func=True)
                 runstack.end_function()
 
                 del formulas[1][opIndex]
                 del formulas[0][opIndex+1]
                 del formulas[0][opIndex]
 
-                formulas[0].insert(opIndex,[[],var,[]])
+                formulas[0].insert(opIndex, [[], var, []])
                 self.debug("結果", var, formulas, depth=depth)
 
                 sizeO -= 1
-            
+
         else:
             if formulas[0][0][1].get_type() == ClassType.TYPE_UNCOMPOTED:
-                formulas[0][0][1] = self.__run_fun(runstack,depth,run_func=True,processes=formulas[0][0][1].process)
+                formulas[0][0][1] = self.__run_fun(
+                    runstack, depth, run_func=True, processes=formulas[0][0][1].process)
 
             formulas[0][0][1] = self.__run_op_bf(
                 runstack=runstack, depth=depth, formula=formulas[0][0])
@@ -417,16 +375,15 @@ funend result  VariableNone
 
         return formulas[0][0][1]
 
-
-
     # backとfrontのみをやる
     # 優先順位マイナスの考慮はopmidのみ
     # 同じなら左優先
-    def __run_op_bf(self, *, depth,formula, runstack):
+
+    def __run_op_bf(self, *, depth, formula, runstack):
 
         depth += 1
 
-        self.debug("runBF",depth=depth)
+        self.debug("runBF", depth=depth)
 
         sizeR = len(formula[0])
         sizeL = len(formula[2])
@@ -462,14 +419,15 @@ funend result  VariableNone
                 sizeL -= 1
 
             runstack.run_function(fun, self.__assign_params(fun, [var]))
-            var = self.__run_fun(runstack, depth,run_func=True)
+            var = self.__run_fun(runstack, depth, run_func=True)
             runstack.end_function()
 
-        self.debug("endBF", var,depth=depth)
+        self.debug("endBF", var, depth=depth)
 
         return var
 
-    #引数割り当て
+    # 引数割り当て
+
     def __assign_params(self, function, params_set):
 
         # 引数を変数に割り当て

@@ -4,6 +4,7 @@ from grim.function.builtin import BuiltIn
 from .types import ClassType
 from ..error.vmerror import UnknownOperationError
 
+
 class Variable:
     def __init__(self, name):
         self.name = name
@@ -63,6 +64,7 @@ class VariableNone(Variable):
             return self
         UnknownOperationError(self, other, "/").throw()
 
+
 class Runnable(Variable):  #
     def __init__(self, name, params=None):
         self.name = name
@@ -74,7 +76,8 @@ class Runnable(Variable):  #
     def get_type(self):
         return ClassType.TYPE_RUNNABLE
 
-class Indefinite: #計算はできない
+
+class Indefinite:  # 計算はできない
     def __init__(self, name):
         self.name = name
 

@@ -22,11 +22,11 @@ class Parser:
         self.program_len = len(self.program)
         self.enable_debug = debug
         self.main = Function(name="main", parent=Function.ROOT,
-                                function_type=Function.TYPE_FUNCTION)
+                             function_type=Function.TYPE_FUNCTION)
 
     # read
     def read(self):
-        self.__read_process(index=0,function=self.main)
+        self.__read_process(index=0, function=self.main)
 
     # 区切りを判別
     def is_space(self, string):
@@ -38,7 +38,7 @@ class Parser:
             print(*msg)
 
     # funを読む
-    def __read_fun(self, *,index, parent, function_type):
+    def __read_fun(self, *, index, parent, function_type):
 
         # 状態
         READ_ID = 0
@@ -54,7 +54,8 @@ class Parser:
         # 設定
         strs = ""
         success = False
-        function = Function(parent=parent,name = None,function_type=function_type)
+        function = Function(parent=parent, name=None,
+                            function_type=function_type)
 
         while index < self.program_len:
             s = self.program[index]
@@ -66,10 +67,10 @@ class Parser:
             if mode == READ_ID:
 
                 if is_space:
-                    
+
                     # 予約語チェック
                     if not Function.check_name(strs):
-                        FunctionAlreadyUsedError(index,name = strs)
+                        FunctionAlreadyUsedError(index, name=strs)
 
                     function.name = strs
                     function.parent = parent
@@ -96,13 +97,14 @@ class Parser:
 
                 if is_space:
 
-                    if strs !="":
+                    if strs != "":
                         res = Numeric.is_num(strs)
                         if isinstance(res, bool):
-                            ParseError(index, reason="オペレーターの優先度は数値である必要があります").throw()
+                            ParseError(
+                                index, reason="オペレーターの優先度は数値である必要があります").throw()
                         else:
                             function.priority = res
-                        
+
                         mode = READ_ID
                         strs = ""
 
@@ -118,7 +120,8 @@ class Parser:
 
                         # 同じ名前の引数はエラーを出す
                         if strs in function.parameters:
-                            ParameterNameError(index,param = strs, fun = function.name).throw()
+                            ParameterNameError(
+                                index, param=strs, fun=function.name).throw()
 
                         # 予約語チェック
                         if not Parameter.check_name(strs):
@@ -134,7 +137,8 @@ class Parser:
 
                         # 同じ名前の引数はエラーを出す
                         if strs in function.parameters:
-                            ParameterNameError(index, param=strs, fun=function.name).throw()
+                            ParameterNameError(
+                                index, param=strs, fun=function.name).throw()
 
                         # 予約語チェック
                         if not Parameter.check_name(strs):
@@ -154,33 +158,32 @@ class Parser:
                 # 引数の個数チェック
                 if function.function_type == Function.TYPE_OP_FRONT or Function.TYPE_OP_BACK:
                     if len(function.parameters) != 1:
-                        ParameterCountError(need = 1, fun = function.name)
+                        ParameterCountError(need=1, fun=function.name)
                 elif function.function_type == Function.TYPE_OP_MID:
                     if len(function.parameters) != 2:
-                        ParameterCountError(need = 2, fun = function.name)
+                        ParameterCountError(need=2, fun=function.name)
 
-                index = self.__read_process(index = index, function = function)
+                index = self.__read_process(index=index, function=function)
                 success = True
                 break
 
             index += 1
 
         if not success:
-            EOFError(index,info="関数が終了しませんでした").throw()
+            EOFError(index, info="関数が終了しませんでした").throw()
 
         if function.name in parent.functions:
-            FunctionAlreadyUsedError(index,name = function.name).throw()
+            FunctionAlreadyUsedError(index, name=function.name).throw()
 
         parent.functions[function.name] = function
-        
+
         return index
 
     # 式を一つ読む
-    def __read_formula(self, *, index, formula,endIndex = None):
+    def __read_formula(self, *, index, formula, endIndex=None):
 
         if endIndex == None:
             endIndex = self.program_len
-
 
         SKIP_SPACE = 0
         READ_ONE = 1  # 1文字目を読む
@@ -194,7 +197,7 @@ class Parser:
             s = self.program[index]
             is_space = self.is_space(s)
 
-            self.debug("formula", index, s,mode)
+            self.debug("formula", index, s, mode)
             success = False
 
             if mode == SKIP_SPACE:
@@ -218,7 +221,7 @@ class Parser:
                     break
 
                 elif s == "(":
-                    
+
                     # 式を追加
                     br_formula = Formula(value=[])
                     index = self.__read_process(
@@ -294,7 +297,7 @@ class Parser:
             s = self.program[index]
             is_space = self.is_space(s)
 
-            self.debug("proc", index, s,mode)
+            self.debug("proc", index, s, mode)
 
             if mode == SKIP_SPACE:
 
@@ -370,7 +373,7 @@ class Parser:
                             break
 
                         index = self.__read_fun(index=index, parent=function,
-                                        function_type=Function.symbol2type(strs))
+                                                function_type=Function.symbol2type(strs))
 
                     else:
 
@@ -393,7 +396,7 @@ class Parser:
                         # 式を追加
                         formula = Formula()
                         index = self.__read_formula(
-                            index=start_index, formula=formula,endIndex = index)
+                            index=start_index, formula=formula, endIndex=index)
 
                         if bracket_mode:
                             function.value.append(formula)

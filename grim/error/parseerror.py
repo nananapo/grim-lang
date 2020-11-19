@@ -14,7 +14,7 @@ class ParseError:
 
 class ParameterNameError(ParseError):
 
-    def __init__(self, index,*,param, fun):
+    def __init__(self, index, *, param, fun):
         index = str(index)
         self.error = "引数名 " + param + " は既に使用されています :関数名 " + fun + " :インデックス " + index
 
@@ -24,7 +24,7 @@ class ParameterNameError(ParseError):
 
 class ParameterCountError(ParseError):
 
-    def __init__(self, *,need, fun):
+    def __init__(self, *, need, fun):
         need = str(need)
         self.error = "オペレーターの引数は" + need + "個である必要があります :オペレーター名" + fun
 
@@ -34,7 +34,7 @@ class ParameterCountError(ParseError):
 
 class FunctionAlreadyUsedError(ParseError):
 
-    def __init__(self, index,*,name):
+    def __init__(self, index, *, name):
         index = str(index)
         self.error = "関数名 " + name + " は既に使用されています :インデックス "+index
 

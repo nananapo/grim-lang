@@ -1,6 +1,8 @@
 from grim.formula.types import ClassType
 
-#計算は出来ない
+# 計算は出来ない
+
+
 class NameClass:
     def __init__(self, name):
         self.name = name

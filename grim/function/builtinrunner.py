@@ -1,12 +1,13 @@
-from ..vm.runstack import SearchResult
-from ..error.vmerror import ParameterNotMatchError, VariableNotFoundError
-from ..formula.variable import *
-from ..formula.primitive import *
+from grim.vm.runstack import SearchResult
+from grim.error.vmerror import ParameterNotMatchError, VariableNotFoundError
+from grim.formula.variable import VariableNone
+from grim.formula.primitive import String
+from grim.formula.types import ClassType
 
 class BuiltInRunner:
 
     @staticmethod
-    def run_builtin(name, params,runstack):
+    def run_builtin(name, params, runstack):
 
         param_len = len(params)
         result = None
@@ -27,7 +28,7 @@ class BuiltInRunner:
             if not(params[0].get_type() == ClassType.TYPE_NAME or params[0].get_type() == ClassType.TYPE_INDEFINITE):
                 ParameterNotMatchError("__assign").throw()
 
-            search_result = runstack.search_variable(params[0].name,variable_only = True)
+            search_result = runstack.search_variable(params[0].name, variable_only=True)
 
             if search_result.result == SearchResult.RESULT_VARIABLE:
                 search_result.variables[params[0].name] = params[1]

@@ -2,11 +2,12 @@
 from grim.vm.grimvm import GrimRunner
 from grim.parser.interpreter import Parser
 
+
 class DebugAndRun:
 
     @staticmethod
-    def run(file,debug = False,running = True):
-        
+    def run(file, debug=False, running=True):
+
         if debug:
             print("========Parse==========")
 
@@ -39,4 +40,4 @@ class DebugAndRun:
                 print("========RUNNING========")
 
         if running:
-            GrimRunner(parser,enable_debug=debug).run()
+            GrimRunner(parser, enable_debug=debug).run()

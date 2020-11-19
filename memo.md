@@ -14,3 +14,4 @@
 * endでmainを終了できる
 * 名前型受け取り
 * 値をname型受け取り , name型渡し
+* functionバグり

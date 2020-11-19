@@ -1,31 +1,6 @@
-opf 100 #(com)
-    com + 1
+
+fun createList(;name)
+    "kaan"
 end
 
-opm 2 +(va1 va2)
-    __plus(va1 va2)
-end
-
-opm 2 -(va1 va2)
-    __minus(va1 va2)
-end
-
-opm 3 *(va1 va2)
-    __mul(va1 va2)
-end
-
-opm 3 /(va1 va2)
-    __div(va1 va2)
-end
-
-opm 0 =(;na va)
-    return(__assign(na va))
-end
-
-opb 10 °(do)
-    do / 5
-end
-
-a = b = 3
-
-print(a)
+createList("aaa")

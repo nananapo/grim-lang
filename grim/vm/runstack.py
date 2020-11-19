@@ -1,10 +1,11 @@
-from grim.error.vmerror import *
 from grim.function.builtin import BuiltIn
 from grim.formula.primitive import Numeric
 from grim.function.function import Function
 from grim.vm.search_result import SearchResult
 
 # 実行管理用
+
+
 class RunStack:
 
     __FN2RS = {
