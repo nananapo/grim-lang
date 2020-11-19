@@ -61,7 +61,7 @@ class UnknownOperationError(VMError):
 class ZeroDivisionError(VMError):
 
     def __init__(self):
-        self.error = "0で割ることはできません(未定義動作)"
+        self.error = "0で割ることはできません"
 
     def name(self):
         return "ZeroDivisionError"

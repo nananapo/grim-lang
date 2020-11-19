@@ -19,11 +19,13 @@ opm 3 /(va1 va2)
 end
 
 opm 0 =(;na va)
-    __assign(na va)
+    return(__assign(na va))
 end
 
 opb 10 °(do)
     do / 5
 end
 
-print((1 + 3) * (2 + 3 * 5))
+a = b = 3
+
+print(a)

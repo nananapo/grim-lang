@@ -38,7 +38,7 @@ class Function:
 
     #正なら左から結合する
     def is_left_unite(self):
-        return self.priority  >= 0
+        return self.priority  > 0
 
     def __str__(self):
         return ("Function" if self.function_type == Function.TYPE_FUNCTION else "Operator")+"<" + self.name+">"
