@@ -56,7 +56,7 @@ class VariableNameError(ParseError):
 
     def __init__(self, index, *, variable):
         index = str(index)
-        self.error = "変数名 " + variable + \
+        self.error = "名前 " + variable + \
             " は予約語として既に使用されている、または使用不可能な文字が含まれています :インデックス " + index
 
     def name(self):
