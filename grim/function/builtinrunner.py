@@ -1,7 +1,7 @@
 from grim.vm.runstack import SearchResult
-from grim.error.vmerror import ParameterNotMatchError, VariableNotFoundError
+from grim.error.vmerror import ParameterNotMatchError, VariableNotFoundError, NumericCastError
 from grim.formula.variable import VariableNone
-from grim.formula.primitive import String
+from grim.formula.primitive import Numeric, String
 from grim.formula.types import ClassType
 
 
@@ -62,5 +62,23 @@ class BuiltInRunner:
             if param_len != 2:
                 ParameterNotMatchError("__div").throw()
             result = params[0] / params[1]
+
+        elif name == "__num":
+
+            if not(params[0].get_type() == ClassType.TYPE_STRING):
+                ParameterNotMatchError("__num").throw()
+
+            num = Numeric.is_num(params[0].string)
+            if isinstance(num,bool):
+                NumericCastError(params[0].string).throw()
+
+            result = Numeric(num)
+
+        elif name == "__str":
+
+            if not(params[0].get_type() == ClassType.TYPE_NUMERIC):
+                ParameterNotMatchError("__num").throw()
+
+            result = Numeric(str(params[0].number))
 
         return result
