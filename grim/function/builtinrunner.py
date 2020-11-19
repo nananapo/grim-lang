@@ -4,6 +4,7 @@ from grim.formula.variable import VariableNone
 from grim.formula.primitive import String
 from grim.formula.types import ClassType
 
+
 class BuiltInRunner:
 
     @staticmethod
@@ -28,7 +29,8 @@ class BuiltInRunner:
             if not(params[0].get_type() == ClassType.TYPE_NAME or params[0].get_type() == ClassType.TYPE_INDEFINITE):
                 ParameterNotMatchError("__assign").throw()
 
-            search_result = runstack.search_variable(params[0].name, variable_only=True)
+            search_result = runstack.search_variable(
+                params[0].name, variable_only=True)
 
             if search_result.result == SearchResult.RESULT_VARIABLE:
                 search_result.variables[params[0].name] = params[1]
@@ -56,7 +58,7 @@ class BuiltInRunner:
             result = params[0] * params[1]
 
         elif name == "__div":
-            
+
             if param_len != 2:
                 ParameterNotMatchError("__div").throw()
             result = params[0] / params[1]

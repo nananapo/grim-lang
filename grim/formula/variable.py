@@ -1,8 +1,8 @@
 from grim.formula.primitive import String
 from grim.function.function import Function
 from grim.function.builtin import BuiltIn
-from .types import ClassType
-from ..error.vmerror import UnknownOperationError
+from grim.formula.types import ClassType
+from grim.error.vmerror import UnknownOperationError
 
 
 class Variable:

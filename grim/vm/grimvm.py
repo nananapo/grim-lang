@@ -46,7 +46,7 @@ class GrimRunner:
         now_formula = [[], [], []]  # 単位 , op , 優先順位
         now_stack = [[], None, []]  # 一単位 => 先に値にする
 
-        if processes == None:
+        if processes is None:
             processes = parentfunction.process
 
         process_size = len(processes)
@@ -324,7 +324,7 @@ class GrimRunner:
                     fun = formulas[1][j]
 
                     if fun.get_priority() == formulas[2][0]:
-                        if flop == None:
+                        if flop is None:
                             op = fun
                             flop = fun
                             opIndex = j

@@ -1,5 +1,5 @@
-from ..error.vmerror import *
-from ..formula.types import ClassType
+from grim.error.vmerror import UnknownOperationError
+from grim.formula.types import ClassType
 
 
 class Numeric:

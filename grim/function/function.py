@@ -1,6 +1,6 @@
 from grim.formula.primitive import String
 from grim.formula.types import ClassType
-from .builtin import BuiltIn
+from grim.function.builtin import BuiltIn
 
 
 class Function:
