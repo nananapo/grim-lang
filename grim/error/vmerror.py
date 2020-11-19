@@ -65,3 +65,12 @@ class ZeroDivisionError(VMError):
 
     def name(self):
         return "ZeroDivisionError"
+
+
+class NumericCastError(VMError):
+
+    def __init__(self, string):
+        self.error = "文字列 "+string+"は数値ではありません。"
+
+    def name(self):
+        return "NumericCastError"

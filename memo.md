@@ -15,3 +15,4 @@
 * 名前型受け取り
 * 値をname型受け取り , name型渡し
 * functionバグり
+* __numはstr->num __strはnum->str,str->str  文字にするのと文字操作を作ればリストが作れる

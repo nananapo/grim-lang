@@ -31,7 +31,9 @@ def test_grim(capfd):
         "68",
         "5",
         "1.0",
-        "here"
+        "here",
+        "12",
+        "6.6"
     ]
 
     for i in range(0, len(want)):

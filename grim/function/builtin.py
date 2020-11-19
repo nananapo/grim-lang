@@ -12,7 +12,10 @@ class BuiltIn:
         "__plus",
         "__minus",
         "__mul",
-        "__div"
+        "__div",
+
+        "__num",
+        "__str"
     ])
 
     MARK = set([
