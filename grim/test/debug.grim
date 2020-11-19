@@ -3,4 +3,4 @@ fun createList(;name)
     "kaan"
 end
 
-createList("aaa")
+print(createList("aaa"))

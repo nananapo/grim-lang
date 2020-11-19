@@ -67,21 +67,23 @@ class Parser:
 
                 if is_space:
 
-                    # 予約語チェック
-                    if not Function.check_name(strs):
-                        FunctionAlreadyUsedError(index, name=strs)
+                    if strs != "":
+                        
+                        # 予約語チェック
+                        if not Function.check_name(strs):
+                            VariableNameError(index, variable=strs).throw()
 
-                    function.name = strs
-                    function.parent = parent
+                        function.name = strs
+                        function.parent = parent
 
-                    mode = READ_PROC
-                    strs = ""
+                        mode = READ_PROC
+                        strs = ""
 
                 elif s == "(":
 
                     # 予約語チェック
                     if not Function.check_name(strs):
-                        FunctionAlreadyUsedError(index, name=strs)
+                        VariableNameError(index, variable=strs)
 
                     function.name = strs
                     function.parent = parent

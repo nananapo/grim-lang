@@ -26,6 +26,10 @@ opb 10 °(do)
     do / 5
 end
 
+fun testfun(va1)
+    va1 * 2 + 5 + " : value*2 + 5"
+end
+
 print("print string test")
 
 __assign(assign_test1 "assign test1")
@@ -33,6 +37,8 @@ print(assign_test1)
 
 assign_test2 = "assign test2"
 print(assign_test2)
+
+print(testfun(100)) # "関数実行テスト 205 : value*2 + 5"
 
 print(# "op1 test")
 

@@ -15,6 +15,7 @@ def test_grim(capfd):
         "print string test",
         "assign test1",
         "assign test2",
+        "205 : value*2 + 5",
         "op1 test1",
         "front 2",
         "mid 3",
