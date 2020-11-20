@@ -11,6 +11,7 @@ class ClassType:
     # プリミティブ型
     TYPE_STRING = 2
     TYPE_NUMERIC = 3
+    TYPE_BOOLEAN = 3.5
 
     # 不定型
     TYPE_INDEFINITE = 4

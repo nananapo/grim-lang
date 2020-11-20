@@ -138,3 +138,15 @@ class String:
         if o_type == ClassType.TYPE_NONE:
             return self.copy()
         UnknownOperationError(self, other, "/").throw()
+
+
+class Boolean:
+
+    def __init__(self, value):
+        self.value = value
+
+    def get_type(self):
+        return ClassType.TYPE_BOOLEAN
+
+    def __str__(self):
+        return "True" if self.value else "False"

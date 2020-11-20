@@ -67,7 +67,7 @@ class GrimRunner:
             self.debug("f", var_type, var, depth=depth)
 
             #
-            if var_type == ClassType.TYPE_NONE or var_type == ClassType.TYPE_STRING or var_type == ClassType.TYPE_NUMERIC or var_type == ClassType.TYPE_INDEFINITE or var_type == ClassType.TYPE_NAME:
+            if var_type == ClassType.TYPE_NONE or var_type == ClassType.TYPE_STRING or var_type == ClassType.TYPE_NUMERIC or var_type == ClassType.TYPE_INDEFINITE or var_type == ClassType.TYPE_NAME or var_type == ClassType.TYPE_BOOLEAN:
                 pass
             #
             elif var_type == ClassType.TYPE_VARIABLE:

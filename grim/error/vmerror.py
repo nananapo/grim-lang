@@ -74,3 +74,12 @@ class NumericCastError(VMError):
 
     def name(self):
         return "NumericCastError"
+
+
+class TypeError(VMError):
+
+    def __init__(self, string):
+        self.error = string
+
+    def name(self):
+        return "TypeError"
