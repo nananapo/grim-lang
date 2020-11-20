@@ -154,10 +154,13 @@ class GrimRunner:
 
                 # 引数ありビルトイン関数
                 elif search_result.result == SearchResult.RESULT_BUILT_IN_FUNCTION:
-
+                    
                     if run_func:
-                        params_set = self.__run_fun(
-                            runstack, depth=depth, return_list=True, processes=var.value)
+
+                        params_set = []
+                        if len(var.value) != 0:
+                            params_set = self.__run_fun(
+                                runstack, depth=depth, return_list=True, processes=var.value)
 
                         var = BuiltInRunner.run_builtin(
                             search_result.name, params_set, runstack)

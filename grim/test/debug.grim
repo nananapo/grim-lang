@@ -1,6 +1,1 @@
-
-fun createList(;name)
-    "kaan"
-end
-
-print(createList("aaa"))
+print(__true())
