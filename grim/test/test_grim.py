@@ -47,7 +47,7 @@ def test_grim(capfd):
         "True",
         "False",
         "True",
-        "False",
+        "True",
         "True",
         "False",
     ]
