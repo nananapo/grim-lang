@@ -1,7 +1,7 @@
 from grim.vm.runstack import SearchResult
-from grim.error.vmerror import ParameterNotMatchError, VariableNotFoundError, NumericCastError
+from grim.error.vmerror import ParameterNotMatchError, VariableNotFoundError, NumericCastError, TypeError
 from grim.formula.variable import VariableNone
-from grim.formula.primitive import Numeric, String
+from grim.formula.primitive import Boolean, Numeric, String
 from grim.formula.types import ClassType
 
 
@@ -69,7 +69,7 @@ class BuiltInRunner:
                 ParameterNotMatchError("__num").throw()
 
             num = Numeric.is_num(params[0].string)
-            if isinstance(num,bool):
+            if isinstance(num, bool):
                 NumericCastError(params[0].string).throw()
 
             result = Numeric(num)
@@ -80,5 +80,43 @@ class BuiltInRunner:
                 ParameterNotMatchError("__num").throw()
 
             result = Numeric(str(params[0].number))
+
+        elif name == "__true" or name == "__false":
+
+            if param_len != 0:
+                ParameterNotMatchError("__true").throw()
+
+            result = Boolean(True) if name == "__true" else Boolean(False)
+
+        elif name == "__equal":
+
+            if param_len != 2:
+                ParameterNotMatchError("__plus").throw()
+
+            type0 = params[0].get_type()
+            # 型が一致しないとfalse
+            if type0 != params[1].get_type():
+                result = Boolean(False)
+            else:
+                if type0 == ClassType.TYPE_STRING:
+                    result = Boolean(params[0].string == params[1].string)
+                elif type0 == ClassType.TYPE_NUMERIC:
+                    result = Boolean(params[0].number == params[1].number)
+                elif type0 == ClassType.TYPE_BOOLEAN:
+                    result = Boolean(params[0].value == params[1].value)
+                else:
+                    result = Boolean(False)
+
+        elif name == "__larger":
+
+            if param_len != 2:
+                ParameterNotMatchError("__larger").throw()
+
+            type0 = params[0].get_type()
+            # 型はnumberのみ
+            if type0 != params[1].get_type() or type0 != ClassType.TYPE_NUMERIC:
+                TypeError("__largerの引数は数値である必要があります。").throw()
+
+            result = Boolean(params[0].number > params[1].number)
 
         return result

@@ -13,9 +13,14 @@ class BuiltIn:
         "__minus",
         "__mul",
         "__div",
-
+        # キャスト
         "__num",
-        "__str"
+        "__str",
+        # boolean
+        "__true",
+        "__false",
+        "__equal",
+        "__larger"
     ])
 
     MARK = set([
