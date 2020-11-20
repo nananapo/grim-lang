@@ -71,3 +71,4 @@ class VariableKeywordError(ParseError):
 
     def name(self):
         return "VariableKeywordError"
+

@@ -22,3 +22,5 @@ class ClassType:
     # 関数
     TYPE_FUNCTION = 6
     TYPE_UNCOMPOTED = 7
+
+    TYPE_CONTROL = 8

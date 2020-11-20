@@ -1,3 +1,4 @@
+from typing import Type
 from grim.error.vmerror import ParameterNotMatchError, FunctionNotFoundError, VMError, ParameterIsNameClassError
 from grim.vm.runstack import RunStack, SearchResult
 from grim.formula.name import NameClass
@@ -154,7 +155,7 @@ class GrimRunner:
 
                 # 引数ありビルトイン関数
                 elif search_result.result == SearchResult.RESULT_BUILT_IN_FUNCTION:
-                    
+
                     if run_func:
 
                         params_set = []
@@ -187,6 +188,25 @@ class GrimRunner:
                 if run_func:
                     var = self.__run_fun(depth=depth,
                                          runstack=runstack, processes=var.process)
+                else:
+                    var = UncomputedFunction([formula])
+
+            elif var_type == ClassType.TYPE_CONTROL:
+
+                if run_func:
+
+                    # 評価
+                    bool_formula = self.__run_fun(
+                        depth=depth, runstack=runstack, processes=var.formula)
+
+                    if bool_formula.get_type() != ClassType.TYPE_BOOLEAN:
+                        TypeError(string="評価式はbooleanである必要があります").throw()
+
+                    if bool_formula.value:
+                        var = self.__run_fun(depth=depth,
+                                             runstack=runstack, processes=var.process)
+                    else:
+                        var = VariableNone()
                 else:
                     var = UncomputedFunction([formula])
 

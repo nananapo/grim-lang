@@ -1,3 +1,4 @@
+from grim.function.control import Control
 from grim.function.function import Function, Parameter
 from grim.formula.primitive import Numeric, String
 from grim.formula.variable import Variable, Runnable
@@ -45,17 +46,19 @@ class Parser:
         READ_PARAMS = 2
         READ_PROC = 3
 
-        if function_type == Function.TYPE_FUNCTION:
-            mode = READ_ID
-        else:
-            mode = READ_PRIORITY
-
         # 設定
         strs = ""
         success = False
         function = Function(parent=parent, name=None,
                             function_type=function_type)
 
+        # 関数で場合分け
+        if function_type == Function.TYPE_FUNCTION:
+            mode = READ_ID
+        else:
+            mode = READ_PRIORITY
+
+        # 処理
         while index < self.program_len:
             s = self.program[index]
             is_space = self.is_space(s)
@@ -68,7 +71,7 @@ class Parser:
                 if is_space:
 
                     if strs != "":
-                        
+
                         # 予約語チェック
                         if not Function.check_name(strs):
                             VariableNameError(index, variable=strs).throw()
@@ -361,8 +364,7 @@ class Parser:
                     if strs in Function.SYMBOL:
 
                         if bracket_mode:
-                            ParseError(
-                                start_index, reason="括弧の中で関数の宣言、終了は出来ません")
+                            ParseError(start_index, reason="括弧の中で関数の宣言、終了は出来ません").throw()
 
                         # 同名の関数は存在しない
                         if not is_space:
@@ -375,6 +377,31 @@ class Parser:
 
                         index = self.__read_fun(index=index, parent=function,
                                                 function_type=Function.symbol2type(strs))
+
+                    elif strs in Control.SYMBOL:
+
+                        if strs == "if":
+
+                            if s != "(":
+                                suc = False
+                                while index < self.program_len:
+                                    if not self.is_space(self.program[index]):
+                                        suc = self.program[index] == "("
+                                        break
+                                    index += 1
+                                
+                                if not suc:
+                                    ParseError(index,reason="if文の後には括弧で囲われた評価式が必要です").throw()
+                                        
+                            # 式を追加
+                            formula = Formula()
+                            index = self.__read_control(
+                                index=index+1, formula=formula)
+
+                            if bracket_mode:
+                                function.value.append(formula)
+                            else:
+                                function.process.append(formula)
 
                     else:
 
@@ -438,7 +465,25 @@ class Parser:
 
         return index
 
+    def __read_control(self, *, index, formula):
+
+        formula.value = []
+
+        index = self.__read_process(
+            index=index, function=formula, bracket_mode=True)
+
+        control = Control()
+        control.formula = formula.value
+        control.process = []
+
+        index = self.__read_process(index=index+1, function=control)
+
+        formula.value = control
+
+        return index
+
     # 文字を読む
+
     def __read_str(self, *, index, startWith):
 
         READ_STR = 0
