@@ -1,1 +1,5 @@
-print(__true())
+
+
+if (__true)
+    1
+end
