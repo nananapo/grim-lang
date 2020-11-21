@@ -364,7 +364,8 @@ class Parser:
                     if strs in Function.SYMBOL:
 
                         if bracket_mode:
-                            ParseError(start_index, reason="括弧の中で関数の宣言、終了は出来ません").throw()
+                            ParseError(
+                                start_index, reason="括弧の中で関数の宣言、終了は出来ません").throw()
 
                         # 同名の関数は存在しない
                         if not is_space:
@@ -389,10 +390,11 @@ class Parser:
                                         suc = self.program[index] == "("
                                         break
                                     index += 1
-                                
+
                                 if not suc:
-                                    ParseError(index,reason="if文の後には括弧で囲われた評価式が必要です").throw()
-                                        
+                                    ParseError(
+                                        index, reason="if文の後には括弧で囲われた評価式が必要です").throw()
+
                             # 式を追加
                             formula = Formula()
                             index = self.__read_control(

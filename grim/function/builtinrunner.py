@@ -1,5 +1,5 @@
 from grim.vm.runstack import SearchResult
-from grim.error.vmerror import ParameterNotMatchError, VariableNotFoundError, NumericCastError, TypeError
+from grim.error.vmerror import ParameterNotMatchError, VMError, VariableNotFoundError, NumericCastError, TypeError
 from grim.formula.variable import VariableNone
 from grim.formula.primitive import Boolean, Numeric, String
 from grim.formula.types import ClassType
@@ -26,16 +26,24 @@ class BuiltInRunner:
             if param_len != 2:
                 ParameterNotMatchError("__assign").throw()
 
-            if not(params[0].get_type() == ClassType.TYPE_NAME or params[0].get_type() == ClassType.TYPE_INDEFINITE):
+            type0 = params[0].get_type()
+            varname = ""
+            if type0 == ClassType.TYPE_NAME or type0 == ClassType.TYPE_INDEFINITE:
+                varname = params[0].name
+            elif type0 == ClassType.TYPE_STRING:
+                varname = params[0].string
+            elif type0 == ClassType.TYPE_NUMERIC:
+                varname = str(params[0].number)
+            else:
                 ParameterNotMatchError("__assign").throw()
 
             search_result = runstack.search_variable(
-                params[0].name, variable_only=True)
+                varname, variable_only=True)
 
             if search_result.result == SearchResult.RESULT_VARIABLE:
-                search_result.variables[params[0].name] = params[1]
+                search_result.variables[varname] = params[1]
             else:
-                VariableNotFoundError(params[0].name).throw()
+                VariableNotFoundError(varname).throw()
 
             result = params[1]
 
@@ -118,5 +126,27 @@ class BuiltInRunner:
                 TypeError("__largerの引数は数値である必要があります。").throw()
 
             result = Boolean(params[0].number > params[1].number)
+
+        elif name == "__type":
+
+            if param_len != 1:
+                ParameterNotMatchError("__type").throw()
+
+            type0 = params[0].get_type()
+
+            if type0 == ClassType.TYPE_NONE:
+                result = "VariableNone"
+            elif type0 == ClassType.TYPE_STRING:
+                result = "String"
+            elif type0 == ClassType.TYPE_NUMERIC:
+                result = "Numeric"
+            elif type0 == ClassType.TYPE_BOOLEAN:
+                result = "Boolean"
+            elif type0 == ClassType.TYPE_INDEFINITE:
+                result = "Indefinite"
+            elif type0 == ClassType.TYPE_NAME:
+                result = "Name"
+            else:
+                result = "Unknown"
 
         return result

@@ -20,7 +20,9 @@ class BuiltIn:
         "__true",
         "__false",
         "__equal",
-        "__larger"
+        "__larger",
+        # checktype
+        "__type"
     ])
 
     MARK = set([

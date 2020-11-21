@@ -50,7 +50,10 @@ def test_grim(capfd):
         "True",
         "True",
         "False",
-        "3 is larger than 1"
+        "3 is larger than 1",
+        "VariableNone",
+        "Numeric",
+        "String"
     ]
 
     for i in range(0, len(want)):
