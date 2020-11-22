@@ -117,3 +117,9 @@ fun none end
 print(__type(none))
 print(__type(100))
 print(__type("あああ"))
+
+# "strin"
+
+print(__strin("abcde" 0))
+print(__strin("abcde" 5))
+print(__strin("abcde" -5))

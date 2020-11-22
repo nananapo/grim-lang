@@ -150,5 +150,28 @@ class BuiltInRunner:
                 result = "Unknown"
             
             result = String(string=result)
+        
+        elif name == "__strin":
+
+            if param_len != 2:
+                ParameterNotMatchError("__strin").throw()
+
+            if params[0].get_type() != ClassType.TYPE_STRING or params[1].get_type() != ClassType.TYPE_NUMERIC:
+                TypeError("__strinは、__strin(文字列,数値)である必要があります。").throw()
+
+            index = params[1].number
+            string = params[0].string
+            lstr = len(string)
+
+            if lstr == 0:
+                result = ""
+            else:
+                index %= lstr
+                if index < 0:
+                    index += lstr
+                result = string[index]
+            
+            result = String(string=result)
+
 
         return result

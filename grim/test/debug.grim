@@ -1,4 +1,1 @@
-
-fun none end
-
-print(__type(none))
+print(__strin("abcde" -6))
