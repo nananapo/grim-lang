@@ -22,7 +22,9 @@ class BuiltIn:
         "__equal",
         "__larger",
         # checktype
-        "__type"
+        "__type",
+        # string
+        "__strin"
     ])
 
     MARK = set([
