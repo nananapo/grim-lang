@@ -21,7 +21,7 @@ class Variable:
         return not (name in BuiltIn.MARK or name in Function.SYMBOL or name in String.SYMBOL)
 
 
-class VariableNone(Variable):
+class VariableNone:
 
     def __init__(self):
         pass

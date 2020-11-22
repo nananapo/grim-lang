@@ -386,6 +386,10 @@ class GrimRunner:
                 sizeO -= 1
 
         else:
+
+            if formulas[0][0][1] is None:
+                formulas[0][0][1] = VariableNone()
+
             if formulas[0][0][1].get_type() == ClassType.TYPE_UNCOMPOTED:
                 formulas[0][0][1] = self.__run_fun(
                     runstack, depth, run_func=True, processes=formulas[0][0][1].process)
@@ -395,6 +399,9 @@ class GrimRunner:
 
         self.debug("全体", formulas, depth=depth)
         self.debug("formula end", formulas[0][0][1], depth=depth)
+
+        if formulas[0][0][1] is None:
+            return VariableNone()
 
         return formulas[0][0][1]
 

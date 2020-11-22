@@ -1,5 +1,4 @@
 
+fun none end
 
-if (__true)
-    1
-end
+print(__type(none))

@@ -148,5 +148,7 @@ class BuiltInRunner:
                 result = "Name"
             else:
                 result = "Unknown"
+            
+            result = String(string=result)
 
         return result
