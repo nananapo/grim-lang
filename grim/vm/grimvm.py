@@ -1,5 +1,5 @@
 from typing import Type
-from grim.error.vmerror import ParameterNotMatchError, FunctionNotFoundError, VMError, ParameterIsNameClassError
+from grim.error.vmerror import ParameterNotMatchError, FunctionNotFoundError, VMError, ParameterIsNameClassError, TypeError
 from grim.vm.runstack import RunStack, SearchResult
 from grim.formula.name import NameClass
 from grim.formula.types import ClassType
@@ -56,6 +56,8 @@ class GrimRunner:
 
         index = 0
 
+        vna2STR = []
+
         while index < process_size:
             formula = processes[index]
             var = formula.value
@@ -82,7 +84,13 @@ class GrimRunner:
                     var = variables[var.name]
                 # 変数
                 elif search_result.result == SearchResult.RESULT_VARIABLE:
-                    var = search_result.variables[var.name]
+                    vna = var.name
+                    var = search_result.variables[vna]
+                    #if var.get_type() == ClassType.TYPE_STRING or var.get_type() == ClassType.TYPE_:
+                    #print("割り当て", var.var_name, "=>", vna,":", var)
+                    if var.var_name != "":
+                        vna2STR.append([var.var_name, var])
+                    var.var_name = vna
                 # 引数なし関数
                 elif search_result.result == SearchResult.RESULT_FUNCTION:
 
@@ -312,6 +320,10 @@ class GrimRunner:
             result_set.append(self.__run_formula(
                 depth=depth, formulas=formula, runstack=runstack))
 
+        for vvv in vna2STR:
+            #print("割りなおし", vvv[1].var_name, "=>", vvv[0], ":", vvv[1])
+            vvv[1].var_name = vvv[0]
+
         # 結果を返す
         if return_list:
             self.debug("funend return_list", result_set, depth=depth)
@@ -372,7 +384,10 @@ class GrimRunner:
 
                 self.debug("結合", pa1, pa2, op, depth=depth)
 
-                runstack.run_function(op, self.__assign_params(op, [pa1, pa2]))
+                # 準備
+                varassign = self.__assign_params(op, [pa1, pa2])
+
+                runstack.run_function(op, varassign)
                 var = self.__run_fun(runstack, depth, run_func=True)
                 runstack.end_function()
 
@@ -418,6 +433,25 @@ class GrimRunner:
         sizeR = len(formula[0])
         sizeL = len(formula[2])
         sizeL_copy = sizeL
+
+        if formula[1].get_type() == ClassType.TYPE_UNCOMPOTED:
+            
+            formula[1] = self.__run_fun(
+                runstack, depth, processes=formula[1].process, run_func=True)
+
+        elif formula[1].get_type() == ClassType.TYPE_INDEFINITE:
+
+            # 検索
+            search_result = runstack.search_variable(formula[1].name)
+
+            # 変数
+            if search_result.result == SearchResult.RESULT_VARIABLE:
+                formula[1] = search_result.variables[formula[1].name]
+            # 数値
+            elif search_result.result == SearchResult.RESULT_NUMERIC:
+                formula[1] = search_result.numeric
+
+
         var = formula[1]
 
         for i in range(0, sizeR+sizeL):
@@ -478,10 +512,16 @@ class GrimRunner:
                         params_set[i].name)
                 elif par_type == ClassType.TYPE_NAME:
                     params[parameter.name] = params_set[i]
-                elif par_type == ClassType.TYPE_STRING:
+                elif par_type == ClassType.TYPE_STRING or par_type == ClassType.TYPE_BOOLEAN:
+                    
+                    if len(params_set[i].var_name) == 0:
+                        VMError(reason="名前型に文字列は渡せません").throw()
+
                     params[parameter.name] = NameClass(
-                        params_set[i].string)
+                        params_set[i].var_name)# TODO
+
                 else:
+                    print(par_type, params_set[i])
                     ParameterIsNameClassError(
                         function.name, parameter.name).throw()
                 i += 1

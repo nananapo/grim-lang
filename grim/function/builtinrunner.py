@@ -27,6 +27,7 @@ class BuiltInRunner:
                 ParameterNotMatchError("__assign").throw()
 
             type0 = params[0].get_type()
+
             varname = ""
             if type0 == ClassType.TYPE_NAME or type0 == ClassType.TYPE_INDEFINITE:
                 varname = params[0].name
@@ -35,7 +36,10 @@ class BuiltInRunner:
             elif type0 == ClassType.TYPE_NUMERIC:
                 varname = str(params[0].number)
             else:
-                ParameterNotMatchError("__assign").throw()
+                if len(params[0].var_name) == 0:
+                    ParameterNotMatchError(
+                        "__assign:er1"+params[0].var_name+" "+str(params[0])).throw()
+                varname = params[0].var_name
 
             search_result = runstack.search_variable(
                 varname, variable_only=True)

@@ -7,6 +7,7 @@ class Numeric:
 
     def __init__(self, number):
         self.number = number
+        self.var_name = ""
 
     def get_type(self):
         return ClassType.TYPE_NUMERIC
@@ -96,6 +97,7 @@ class String:
     SYMBOL = ["\"", "'"]
 
     def __init__(self, string=""):
+        self.var_name = ""
         self.string = string
 
     def get_type(self):
@@ -143,6 +145,7 @@ class String:
 class Boolean:
 
     def __init__(self, value):
+        self.var_name = ""
         self.value = value
 
     def get_type(self):

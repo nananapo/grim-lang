@@ -5,6 +5,7 @@ from grim.formula.types import ClassType
 
 class NameClass:
     def __init__(self, name):
+        self.var_name = ""
         self.name = name
 
     def get_type(self):

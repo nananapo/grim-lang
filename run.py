@@ -1,10 +1,14 @@
 from grim.test.debugrun import DebugAndRun
+import sys
 
 
 def run():
-    DebugAndRun.run(file=open("grim/test/debug.grim",
-                              encoding="utf-8"), debug=False, running=True)
+    name = "sample/array.grim"
+    #name = "grim/test/debug.grim"
+    DebugAndRun.run(file=open(name, encoding="utf-8"),
+                    debug=False, running=True)
 
 
 if __name__ == "__main__":
+    sys.setrecursionlimit(10000)
     run()

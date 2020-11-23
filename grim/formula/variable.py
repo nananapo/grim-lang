@@ -9,6 +9,7 @@ class Variable:
     def __init__(self, name):
         self.name = name
         self.value = None
+        self.var_name = ""
 
     def get_type(self):
         return ClassType.TYPE_VARIABLE
@@ -24,6 +25,7 @@ class Variable:
 class VariableNone:
 
     def __init__(self):
+        self.var_name = ""
         pass
 
     def get_type(self):
@@ -80,6 +82,7 @@ class Runnable(Variable):  #
 class Indefinite:  # 計算はできない
     def __init__(self, name):
         self.name = name
+        self.var_name = ""
 
     def __str__(self):
         return "Indefinite<"+self.name+">"

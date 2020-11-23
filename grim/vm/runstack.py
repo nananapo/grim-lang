@@ -28,10 +28,12 @@ class RunStack:
         self.variable_set.append(variables)
         self.function_set.append(function)
 
+
     # 処理と変数を取得する
     def get_process_and_variable(self):
         index = len(self.function_set)-1
         return [self.function_set[index], self.variable_set[index]]
+
 
     # 関数を終了したら呼ぶ
     def end_function(self):
@@ -39,8 +41,11 @@ class RunStack:
             self.variable_set.pop()
             self.function_set.pop()
 
+
     # 変数または関数を探して、SearchResultを返す
     def search_variable(self, name, function_only=False, variable_only=False):
+
+        # print("OH",name)
 
         # 動的か静的か判別
         dynamic = False
@@ -78,6 +83,7 @@ class RunStack:
                 if function == parent:
 
                     variables = self.variable_set[index]
+                    # print("checking in",function.name, name,variables)
                     # 変数発見
                     if not function_only and name in variables:
                         return SearchResult(SearchResult.RESULT_VARIABLE, name, dynamic, variables=variables)

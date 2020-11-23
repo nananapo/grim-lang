@@ -2,14 +2,6 @@
 
 ![Python application](https://github.com/nananapo/grim-lang/workflows/Python%20application/badge.svg)
 
-ほぼ確実レポート用。これで使わなかったら萎
-
-2020/11/15より作成
-
-## TODO
-
-- [ ] 名前型の演算
-
 
 ## What's grim-lang
 
@@ -617,6 +609,8 @@ grimには変数の宣言をするキーワードや演算子が無いため、�
 
 
 ##### 名前型
+
+#TODO 名前型周りが非常に言語仕様が曖昧
 
 名前型は、値ではなく名前を持ちます。
 

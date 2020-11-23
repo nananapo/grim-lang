@@ -45,7 +45,7 @@ class Function:
 
     @staticmethod
     def check_name(name):
-        return not (name in BuiltIn.MARK or name in Function.SYMBOL or name in String.SYMBOL)
+        return not (name in BuiltIn.MARK or name in Function.SYMBOL or name in String.SYMBOL or name)
 
     @staticmethod
     def symbol2type(symbol):

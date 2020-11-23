@@ -123,3 +123,106 @@ print(__type("あああ"))
 print(__strin("abcde" 0))
 print(__strin("abcde" 5))
 print(__strin("abcde" -5))
+
+# "配列[実装]"
+fun array_get(_ary _index _split _end)
+
+    opm 0 =(;na va)
+        __assign(na va)
+    end
+
+    opm 2 +(va1 va2)
+        __plus(va1 va2)
+    end
+
+    opm 2 -(va1 va2)
+        __minus(va1 va2)
+    end
+
+    opm 1 ==(_va1 _va2)
+        __equal(_va1 _va2)
+    end
+
+    opf 0 not(_va)
+        __assign(__res __true)
+        if(_va == __true)
+            __assign(__res __false)
+        end
+        return(__res)
+    end
+
+    opm 1 !=(_va1 _va2)
+        return(not __equal(_va1 _va2))
+    end
+
+    opm 0 or(_va1 _va2)
+        __assign(__res __false)
+
+        if (_va1)
+            __assign(__res __true)
+        end
+        if (_va2)
+            __assign(__res __true)
+        end
+        return(__res)
+    end
+
+    fun readArray(_nowStrIndex _nowIndex)
+    
+        opm 0 =(;na va)
+            __assign(na va)
+        end
+
+        __s = __strin(_ary _nowStrIndex)
+        suc1 = __false
+
+        if (__s == _split)
+            suc1 = __true
+
+            if(_nowIndex != 0)
+                _ary_strs = ""
+                _ary_strs = readArray(_nowStrIndex + 1 _nowIndex - 1)
+            end
+        end
+
+        if(not suc1)
+            if (__s == _end)
+                suc1 = __true
+
+                if(_nowIndex != 0)
+                    _ary_strs = __false
+                end
+            end
+            
+            if(not suc1)
+                _ary_strs = _ary_strs + __s
+                _ary_strs = readArray(_nowStrIndex + 1 _nowIndex)
+            end
+        end
+        
+        return(_ary_strs)
+    end
+
+    _ary_strs = ""
+    type_check = __true
+    if (__type(_ary) != "String" or __type(_index) != "Numeric")
+        type_check = __false
+        _ary_strs = __false
+    end
+
+    if(type_check)
+        _ary_strs = readArray(0 _index)
+    end
+
+    return(_ary_strs)
+end
+
+# "arrayのテスト (再帰の実装も兼ねてる)" 
+fun array_test(_array_text _now _last)
+    if(_last != _now)
+        print(array_get(_array_text _now " " "!"))
+        array_test(_array_text _now + 1 _last)
+    end
+end
+
+array_test("1 2 3 4 5 6!" 0 5)
