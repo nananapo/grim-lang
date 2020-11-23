@@ -51,7 +51,7 @@ def test_grim(capfd):
         "True",
         "False",
         "3 is larger than 1",
-        "VariableNone",
+        "String",
         "Numeric",
         "String",
         "a",

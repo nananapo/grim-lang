@@ -3,8 +3,8 @@ import sys
 
 
 def run():
-    name = "sample/array.grim"
-    #name = "grim/test/debug.grim"
+    # name = "sample/array.grim"
+    name = "grim/test/testprogram.grim"
     DebugAndRun.run(file=open(name, encoding="utf-8"),
                     debug=False, running=True)
 

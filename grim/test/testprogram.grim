@@ -99,6 +99,29 @@ opm 0 and(va1 va2)
     va1 == va2
 end
 
+opf 0 not(_va)
+    __assign(__res __true)
+    if(_va == __true)
+        __assign(__res __false)
+    end
+    return(__res)
+end
+
+opm 1 !=(_va1 _va2)
+    return(not __equal(_va1 _va2))
+end
+
+opm 0 or(_va1 _va2)
+    __assign(__res __false)
+    if (_va1)
+        __assign(__res __true)
+    end
+    if (_va2)
+        __assign(__res __true)
+    end
+    return(__res)
+end
+
 print(1 == 1) # "True"
 print("1" == 1) # "False"
 print(3 > 1) # "True"
@@ -112,9 +135,8 @@ if (3 > 1 and 2 < 3)
 end
 
 # "型"
-fun none end
 
-print(__type(none))
+print(__type("none"))
 print(__type(100))
 print(__type("あああ"))
 
@@ -129,42 +151,6 @@ fun array_get(_ary _index _split _end)
 
     opm 0 =(;na va)
         __assign(na va)
-    end
-
-    opm 2 +(va1 va2)
-        __plus(va1 va2)
-    end
-
-    opm 2 -(va1 va2)
-        __minus(va1 va2)
-    end
-
-    opm 1 ==(_va1 _va2)
-        __equal(_va1 _va2)
-    end
-
-    opf 0 not(_va)
-        __assign(__res __true)
-        if(_va == __true)
-            __assign(__res __false)
-        end
-        return(__res)
-    end
-
-    opm 1 !=(_va1 _va2)
-        return(not __equal(_va1 _va2))
-    end
-
-    opm 0 or(_va1 _va2)
-        __assign(__res __false)
-
-        if (_va1)
-            __assign(__res __true)
-        end
-        if (_va2)
-            __assign(__res __true)
-        end
-        return(__res)
     end
 
     fun readArray(_nowStrIndex _nowIndex)
@@ -225,4 +211,4 @@ fun array_test(_array_text _now _last)
     end
 end
 
-array_test("1 2 3 4 5 6!" 0 5)
+array_test("1 2 3 4 5 6!" 0 6)
