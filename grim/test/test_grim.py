@@ -3,7 +3,7 @@ from grim.parser.interpreter import Parser
 
 
 def test_grim(capfd):
-    parser = Parser(open("grim/test/testprogram.grim", encoding="utf-8"))
+    parser = Parser(open("grim/test/sample/testprogram.grim", encoding="utf-8"))
     parser.read()
     GrimRunner(parser).run()
 

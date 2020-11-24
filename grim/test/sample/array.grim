@@ -1,0 +1,290 @@
+opm 2 +(va1 va2)
+    __plus(va1 va2)
+end
+
+opm 2 -(va1 va2)
+    __minus(va1 va2)
+end
+
+opm 1 ==(_va1 _va2)
+    __equal(_va1 _va2)
+end
+
+opm 1 >(va1 va2)
+    __larger(va1 va2)
+end
+
+opm 1 <(va1 va2)
+    va2 > va1
+end
+
+opf 0 not(_va)
+    __assign(__res __true)
+    if(_va == __true)
+        __assign(__res __false)
+    end
+    return(__res)
+end
+
+opm 1 !=(_va1 _va2)
+    return(not __equal(_va1 _va2))
+end
+
+opm 0 or(_va1 _va2)
+    __assign(__res __false)
+    if (_va1)
+        __assign(__res __true)
+    end
+    if (_va2)
+        __assign(__res __true)
+    end
+    return(__res)
+end
+
+fun array_get(_ary _index)
+
+    opm 0 =(;na va)
+        __assign(na va)
+    end
+
+    fun readArray(_nowStrIndex _nowIndex)
+    
+        opm 0 =(;na va)
+            __assign(na va)
+        end
+
+        __s = __strin(_ary _nowStrIndex)
+        suc1 = __false
+
+        if (__s == " ")
+            suc1 = __true
+
+            if(_nowIndex != 0)
+                _ary_strs = ""
+                _ary_strs = readArray(_nowStrIndex + 1 _nowIndex - 1)
+            end
+        end
+
+        if(not suc1)
+            if (__s == "!")
+                suc1 = __true
+
+                if(_nowIndex != 0)
+                    _ary_strs = __false
+                end
+            end
+            
+            if(not suc1)
+                _ary_strs = _ary_strs + __s
+                _ary_strs = readArray(_nowStrIndex + 1 _nowIndex)
+            end
+        end
+        
+        return(_ary_strs)
+    end
+
+    _ary_strs = ""
+    type_check = __true
+    if (__type(_ary) != "String" or __type(_index) != "Numeric")
+        type_check = __false
+        _ary_strs = __false
+    end
+
+    if(type_check)
+        _ary_strs = readArray(0 _index)
+    end
+
+    return(_ary_strs)
+end
+
+fun array_set(_ary _index _value)
+
+    opm 0 =(;na va)
+        __assign(na va)
+    end
+
+    fun readArrayFirst(_nowStrIndex _nowIndex)
+    
+        opm 0 =(;na va)
+            __assign(na va)
+        end
+
+        __s = __strin(_ary _nowStrIndex)
+        suc1 = __false
+
+        if (__s == " ")
+            suc1 = __true
+
+            if(_nowIndex != 0)
+                _ary_strs = _ary_strs + __s
+                _f_str_index = _f_str_index + 1
+                _ary_strs = readArrayFirst(_nowStrIndex + 1 _nowIndex - 1)
+            end
+        end
+
+        if(not suc1)
+            if (__s == "!")
+                suc1 = __true
+
+                if(_nowIndex != 0)
+                    _ary_strs = __false
+                end
+            end
+            
+            if(not suc1)
+                _ary_strs = _ary_strs + __s
+                _f_str_index = _f_str_index + 1
+                _ary_strs = readArrayFirst(_nowStrIndex + 1 _nowIndex)
+            end
+        end
+        
+        return(_ary_strs)
+    end
+
+    fun readArraySkip(_nowStrIndex)
+    
+        opm 0 =(;na va)
+            __assign(na va)
+        end
+
+        __s = __strin(_ary _nowStrIndex)
+        suc1 = __false
+
+        if (__s == " ")
+            suc1 = __true
+        end
+
+        if(not suc1)
+            _f_str_index = readArraySkip(_nowStrIndex + 1) + 1
+        end
+        
+        return(_f_str_index)
+    end
+
+    fun readArrayLast(_nowStrIndex _nowIndex)
+
+        opm 0 =(;na va)
+            __assign(na va)
+        end
+
+        __s = __strin(_ary _nowStrIndex)
+        suc1 = __false
+    
+        if (__s == " ")
+            suc1 = __true
+
+            if(_nowIndex != 0)
+                _ary_strs_last = _ary_strs_last + __s
+                _f_str_index = _f_str_index + 1
+                _ary_strs_last = readArrayLast(_nowStrIndex + 1 _nowIndex - 1)
+            end
+        end
+
+        if(not suc1)
+            if (__s == "!")
+                suc1 = __true
+
+                if(_nowIndex != 0)
+                    _ary_strs_last = __false
+                end
+            end
+            
+            if(not suc1)
+                _ary_strs_last = _ary_strs_last + __s
+                _f_str_index = _f_str_index + 1
+                _ary_strs_last = readArrayLast(_nowStrIndex + 1 _nowIndex)
+            end
+        end
+        
+        return(_ary_strs_last)
+    end
+
+    _ary_strs = ""
+    type_check = __true
+    if (__type(_ary) != "String" or __type(_index) != "Numeric" or __type(_value) != "Numeric")
+        type_check = __false
+        _ary_strs = __false
+    end
+
+    _length = array_len(_ary)
+
+    length_check = __true
+    if (_length < _index + 1)
+        length_check = __false
+        _ary_strs = __false
+    end
+
+    if(type_check and length_check)
+    
+        _f_str_index = 0
+        _ary_strs = readArrayFirst(0 _index - 1)
+
+        is_last_index = _length == _index + 1
+
+        if (is_last_index)
+            _ary_strs = _ary_strs + " " + _value + "!"
+        end
+        if (not is_last_index)
+
+            _f_str_index = readArraySkip(_f_str_index + 1)
+
+            _ary_strs_last = ""
+            _ary_strs_last = readArrayLast(_f_str_index + 2 _length - _index - 2)
+
+            _ary_strs = _ary_strs + " " + _value + " " + _ary_strs_last + "!"
+        end
+    end
+
+    return(_ary_strs)
+end
+
+fun array_len(_ary)
+
+    opm 0 =(;na va)
+        __assign(na va)
+    end
+
+    fun readArray(_nowStrIndex)
+    
+        opm 0 =(;na va)
+            __assign(na va)
+        end
+
+        __s = __strin(_ary _nowStrIndex)
+        suc1 = __false
+
+        if(__s == " ")
+            suc1 = __true
+            _length = readArray(_nowStrIndex + 1) + 1
+        end
+
+        if(not suc1)
+            if(__s == "!")
+                suc1 = __true
+                _length = _length + 1
+            end
+            
+            if(not suc1)
+                _length = readArray(_nowStrIndex + 1)
+            end
+        end
+        
+        return(_length)
+    end
+
+    _length = 0
+    type_check = __true
+
+    if(__type(_ary) != "String")
+        type_check = __false
+        _length = __false
+    end
+
+    if(type_check)
+        _length = readArray(0)
+    end
+
+    return(_length)
+end
+
+print(array_set("1 2 3 4 5 6 0!" 5 65))

@@ -6,38 +6,38 @@ from grim.parser.interpreter import Parser
 class DebugAndRun:
 
     @staticmethod
-    def run(file, debug=False, running=True):
+    def run(file, debug=False, running=True, logfile=None):
 
         if debug:
-            print("========Parse==========")
+            print("========Parse==========", file=logfile)
 
-        parser = Parser(file, debug)
+        parser = Parser(file, debug, logfile=logfile)
         parser.read()
 
         if debug:
-            print()
-            print("========ParseResult==========")
+            print(file=logfile)
+            print("========ParseResult==========", file=logfile)
 
-            print()
-            print("--Formulas in <main>--")
+            print(file=logfile)
+            print("--Formulas in <main>--", file=logfile)
             for formula in parser.main.process:
-                print(formula)
+                print(formula, file=logfile)
 
-            print()
-            print("--Functions in <main>--")
+            print(file=logfile)
+            print("--Functions in <main>--", file=logfile)
             for name in parser.main.functions:
                 fun = parser.main.functions[name]
-                print(fun)
-                print("   ", "params:", fun.parameters)
-                print("   ", "---functions---")
+                print(fun, file=logfile)
+                print("   ", "params:", fun.parameters, file=logfile)
+                print("   ", "---functions---", file=logfile)
                 for fn2 in fun.functions:
-                    print("       ", fun.functions[fn2])
-                print("   ", "---process---")
+                    print("       ", fun.functions[fn2], file=logfile)
+                print("   ", "---process---", file=logfile)
                 for value in fun.process:
-                    print("       ", value)
+                    print("       ", value, file=logfile)
 
             if running:
-                print("========RUNNING========")
+                print("========RUNNING========", file=logfile)
 
         if running:
-            GrimRunner(parser, enable_debug=debug).run()
+            GrimRunner(parser, enable_debug=debug, logfile=logfile).run()

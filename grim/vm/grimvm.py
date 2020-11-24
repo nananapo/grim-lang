@@ -10,10 +10,10 @@ from grim.function.builtinrunner import BuiltInRunner
 
 class GrimRunner:
 
-    def __init__(self, parser, *, enable_debug=False):
+    def __init__(self, parser, *, enable_debug=False, logfile=None):
         self.parser = parser
         self.enable_debug = enable_debug
-
+        self.log_file = logfile
     # 実行 (同時実行可能)
 
     def run(self):
@@ -26,7 +26,7 @@ class GrimRunner:
 
     def debug(self, *msg, depth):
         if self.enable_debug:
-            print("    "*depth, *msg)
+            print("    "*depth, *msg, file=self.log_file)
 
     # Variable,Formulaを返す -> リストなら終了(return) リストの最初だけ使う
     # TODO 不定形は返せない 終了時の不定形を許さない
@@ -512,7 +512,7 @@ class GrimRunner:
                         params_set[i].name)
                 elif par_type == ClassType.TYPE_NAME:
                     params[parameter.name] = params_set[i]
-                elif par_type == ClassType.TYPE_STRING or par_type == ClassType.TYPE_BOOLEAN:
+                elif par_type == ClassType.TYPE_STRING or par_type == ClassType.TYPE_BOOLEAN or ClassType.TYPE_NUMERIC:
                     
                     if len(params_set[i].var_name) == 0:
                         VMError(reason="名前型に文字列は渡せません").throw()

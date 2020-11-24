@@ -34,3 +34,4 @@ jobs:
     - name: Test with pytest
       run: |
         pytest grim/test/test_grim.py
+        pytest grim/test/test_array.py

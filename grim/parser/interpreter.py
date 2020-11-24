@@ -8,7 +8,7 @@ from grim.error.parseerror import FunctionAlreadyUsedError, ParseError, Variable
 
 class Parser:
 
-    def __init__(self, file, debug=False):
+    def __init__(self, file, debug=False,logfile = None):
 
         # ファイル読み込み
         lines = file.readlines()
@@ -21,6 +21,7 @@ class Parser:
         self.program = string
         self.program_len = len(self.program)
         self.enable_debug = debug
+        self.logfile = logfile
         self.main = Function(name="main", parent=Function.ROOT,
                              function_type=Function.TYPE_FUNCTION)
 
@@ -35,7 +36,7 @@ class Parser:
     # デバッグ
     def debug(self, *msg):
         if self.enable_debug:
-            print(*msg)
+            print(*msg,file=self.logfile)
 
     # funを読む
     def __read_fun(self, *, index, parent, function_type):
