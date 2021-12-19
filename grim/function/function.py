@@ -79,4 +79,4 @@ class UncomputedFunction:
 
     # functiontypeではない
     def get_type(self):
-        return ClassType.TYPE_UNCOMPOTED
+        return ClassType.TYPE_UNCOMPUTED

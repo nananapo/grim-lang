@@ -191,7 +191,7 @@ class GrimRunner:
                 else:
                     var = UncomputedFunction(formula)
 
-            elif var_type == ClassType.TYPE_UNCOMPOTED:
+            elif var_type == ClassType.TYPE_UNCOMPUTED:
 
                 if run_func:
                     var = self.__run_fun(depth=depth,
@@ -405,7 +405,7 @@ class GrimRunner:
             if formulas[0][0][1] is None:
                 formulas[0][0][1] = VariableNone()
 
-            if formulas[0][0][1].get_type() == ClassType.TYPE_UNCOMPOTED:
+            if formulas[0][0][1].get_type() == ClassType.TYPE_UNCOMPUTED:
                 formulas[0][0][1] = self.__run_fun(
                     runstack, depth, run_func=True, processes=formulas[0][0][1].process)
 
@@ -434,7 +434,7 @@ class GrimRunner:
         sizeL = len(formula[2])
         sizeL_copy = sizeL
 
-        if formula[1].get_type() == ClassType.TYPE_UNCOMPOTED:
+        if formula[1].get_type() == ClassType.TYPE_UNCOMPUTED:
             
             formula[1] = self.__run_fun(
                 runstack, depth, processes=formula[1].process, run_func=True)
