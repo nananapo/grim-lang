@@ -1,3 +1,6 @@
+後継
+https://github.com/nananapo/grim-cs
+
 # grim-lang
 
 ![Python application](https://github.com/nananapo/grim-lang/workflows/Python%20application/badge.svg)
